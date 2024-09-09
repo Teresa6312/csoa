@@ -1,0 +1,68 @@
+{% block content %}
+<table id="listDataTable" class="display w3-table">
+    <thead>
+        <tr>
+            {% for key, value  in file_fields.items %}
+                <th>{{value}}</th>
+            {% endfor %}
+            <th>Downloads</th>
+        </tr>
+    </thead>
+</table>
+<script>
+    const file_data_url = "{{ file_data_url|safe }}";
+    const file_fields = {{ file_fields|safe }};
+    const file_serverSide = {{ file_serverSide|default:0}};
+    const file_root = "{{file_root|safe}}";
+    var toLoadData = true
+    // Function to create table header
+    function defineColumns() {
+        var columns = []
+        for (key in file_fields) {
+            columns.push({data:key})
+        }
+        columns.push({data: null})
+        return columns
+    }
+    function loaddata() {
+        setup_csrf();
+        if (toLoadData) {
+            $('#listDataTable').DataTable({
+                "processing": true,
+                "serverSide": (file_serverSide === 1)? true:false, // set to true if using django view for pagging
+                "ajax": {
+                    "url": file_data_url,
+                    "type": 'POST',
+                    "error": function(xhr, error, code) {
+                        // Hide the default alert
+                        console.log("DataTables error: ", error);
+                        console.log("Detailed information: ", xhr.responseText);
+                        // Show custom error message
+                        $('#listDataTable').html('<div class="alert alert-danger">System error</div>');
+                    }
+                },
+                "columns": defineColumns(),  // 使用后端传递的列定义
+                "dom": 'Bfrtip',
+                "buttons": ['pageLength','colvis', 'csv'], 
+                "order": [[1, 'desc']], // order by column index, satrting from 0; 1 is change time 
+                "columnDefs": [
+                    {
+                        "targets": -1, // Target the last column (index -1)
+                        "data": null, // Use null if you're not binding any specific data
+                        "render": function (data, type, row) {
+                            // Construct the href using the file data
+                            return '<a href="'+file_root + row['file'] + '" download>Download</a>';
+                        }
+                    }
+                ],
+            });
+            // Correct the click event binding
+            $('#dynamic-table tbody').on('click', 'a', function () {
+                var data = table.row($(this).parents('tr')).data();
+                window.location.href = "/"+data['file'];
+            });
+            toLoadData = false
+        }
+    };
+</script>
+{% endblock%}

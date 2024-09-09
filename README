@@ -1,0 +1,5 @@
+Installation Guide
+python manage.py makemigrations userManagement
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver

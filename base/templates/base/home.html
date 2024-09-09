@@ -1,0 +1,30 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% load custom_tags %}
+
+{% block title%}
+{% trans 'Home' %}
+{% endblock%}
+
+{% block content %}
+<div class="grid-container">
+    {% for app in menu %}
+        <div class="grid-item">
+            {% if app.link %}
+                <a href="{% url app.link %}">
+                    <i class="{{app.icon}} w3-jumbo"></i>
+                    <p>{{app.label}}</p>
+                </a>
+            {% else %}
+                <a href="{% url 'app:app_home' app.key %}">
+                    <i class="{{app.icon}} w3-jumbo"></i>
+                    <p>{{app.label}}</p>
+                </a>
+            {% endif %}
+        </div>
+    {% endfor %}
+  </div>
+{% endblock%}
+
+{% block footer_line %}
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base/app_base.html" %}
+{% load i18n static %}
+{% load custom_tags %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+<div class="w3-cell-row">
+    <form method="get" class="w3-container w3-cell w3-cell-top">
+        {{ filter.form.as_p }}
+        {% for header in selected_headers %}
+            <input type="hidden" name="headers" value="{{ header }}">
+        {% endfor %}
+        <button type="submit">Search</button>
+    </form>
+    {% if header_form %}
+        <form method="post" class="w3-container w3-cell w3-cell-bottom">
+            {% csrf_token %}
+            {{ header_form.as_p }}
+            <button type="submit" class="w3-right">Re-arrange Heading</button>
+        </form>
+    {% endif %}
+</div>
+{% if cases %}
+    <div class="w3-container">
+        {% render_table cases %}
+    </div>
+{% endif %}
+{% endblock%}
+

@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title%}
+{% if title is not None %}{{title}} | {%endif%}{{menu.label}} 
+{% endblock%}
+
+{% block extrahead %}{{ block.super }}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+{% endblock %}
+
+{% block extrastyle %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+<link rel="stylesheet" type="text/css" href="{% static 'django_tables2/bootstrap.css' %}">
+{% endblock %}
+
+
+{% block left-sidebar %}
+<nav class="sticky w3-container w3-margin w3-border-right" id="nav-sidebar" aria-label="Sidebar" aria-expanded="true">
+    {% for m in menu.subMenu %}
+        <div class="w3-round-xxlarge w3-grey w3-padding w3-margin">
+            {% if m.link %}
+                <a href="{{m.link}}">
+                    {{m.label}}
+                </a>
+            {% else %}
+                {{m.label}}
+            {% endif %}
+        </div>
+    {% endfor %}
+</nav>
+{% endblock %}
+{% block content %}
+{% endblock%}
+
+{% block footer_line %}
+{% endblock %}

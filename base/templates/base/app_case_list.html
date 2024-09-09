@@ -1,0 +1,87 @@
+{% extends "base/app_base.html" %}
+{% load i18n static %}
+{% load tz %}
+
+{% block extrahead %}{{ block.super }}
+<script src="/static/js/common.js"></script>
+<!-- DataTables JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<!-- DataTables SearchPanes JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/searchbuilder/1.7.1/js/dataTables.searchBuilder.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/searchpanes/2.2.0/js/dataTables.searchPanes.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
+
+<!-- DataTables Buttons JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.flash.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+<!-- JSZip (required for Excel export) -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
+<!-- DataTables SearchPanes CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchbuilder/1.7.1/css/searchBuilder.foundation.min.css">
+<!-- DataTables Buttons CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+
+{% endblock %}
+
+{% block content %}
+<table id="listDataTable" class="display w3-table">
+    <thead>
+        <tr>
+            {% for key, value  in fields.items %}
+            <th>{{value}}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+</table>
+<script>
+    const data_fields = {{ fields|safe }};
+    console.log("{{data_url}}")
+    const data_url = "{{data_url}}";
+    var toLoadData = true
+    // Function to create table header
+    function defineAuditColumns() {
+        var columns = []
+        for (key in data_fields) {
+            columns.push({data:key})
+        }
+        return columns
+    }
+    function loadData() {
+        if (toLoadData ) {
+            setup_csrf();
+            $('#listDataTable').DataTable({
+                "processing": true,
+                "serverSide": true, 
+                "ajax": {
+                    "url": data_url,
+                    "type": 'POST',
+                    "error": function(xhr, error, code) {
+                        // Hide the default alert
+                        console.log("DataTables error: ", error);
+                        console.log("Detailed information: ", xhr.responseText);
+                        // Show custom error message
+                        $('#listDataTable').html('<div class="alert alert-danger">System error</div>');
+                    }
+                },
+                "columns": defineAuditColumns(),  // 使用后端传递的列定义
+                "dom": 'QBfrtip',
+                "buttons": ['pageLength','colvis', 'csv'], 
+                "order": [[1, 'desc']] // order by column index, satrting from 0; 1 is change time 
+            });   
+            toLoadData = false
+        }
+    };
+    $(document).ready(
+        loadData()
+    )
+</script>
+{% endblock%}

@@ -1,0 +1,128 @@
+{% extends "base/app_base.html" %}
+{% load i18n static %}
+
+{% block extrahead %}{{ block.super }}
+<script src="/static/DataTables/datatables.min.js"></script>
+<script src="/static/DataTables/datatables.js"></script>
+<script src="/static/js/common.js"></script>
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<!-- https://cdn.datatables.net/ -->
+<link type="text/css"  href="/static/DataTables/datatables.min.css" rel="stylesheet">
+<link type="text/css"  href="/static/DataTables/datatables.css" rel="stylesheet">
+{% endblock %}
+
+{% block title%}
+{{title}}
+{% endblock%}
+
+{% block content %}
+<h3 class="w3-magin w3-padding w3-bar w3-grey">
+    {{title}}
+</h3>
+<br/>
+<div>
+    {% include "base/object_display_block.html" with object_data=record object_fields=fields %}
+</div>
+<div class="w3-bar w3-grey w3-margin">
+    {% if sub_tables is not None %}
+        {% for tab in sub_tables %}
+            <button class="w3-bar-item w3-button" onclick="openTab('{{tab.dictionary_code}}')">{{tab.label}}</button>
+        {% endfor %}
+    {% endif %}
+</div>
+    {% if sub_tables is not None %}
+        {% for tab in sub_tables %}
+            <div id="{{tab.dictionary_code}}" class="w3-container w3-display-container case_tab" style="display:none">
+                <table id="listDataTable-{{tab.dictionary_code}}" class="display w3-table">
+                    <thead>
+                        <tr>
+                            {% for key, value  in tab.fields.items %}
+                                <th>{{value}}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        {% endfor %}
+    {% endif %}
+<script>
+    const sub_tables = {{ sub_tables|safe }};
+    const path = '{{ request.path|safe }}';
+    var sub_details_url = "{% url 'app:app_model_view_details' app_name 0 1 %}"; // Use a placeholder for the ID
+
+    function openTab(tab_name) {
+      var i;
+      var x = document.getElementsByClassName("case_tab");
+      for (i = 0; i < x.length; i++) {
+        x[i].style.display = "none";  
+      }
+      document.getElementById(tab_name).style.display = "block";
+      loaddata(tab_name, 0)
+    }
+    function get_fields(tab_name) {
+        var tab = sub_tables.find((element) => element['dictionary_code'] == tab_name);
+        return tab['fields']
+    }
+    function get_data_url(tab_name) {
+        var tab = sub_tables.find((element) => element['dictionary_code'] == tab_name);
+        data_url = '/api'+path+'/'+tab_name+'&'+tab['id_filter_name']+'-filter'
+        console.log(data_url)
+        return data_url
+    }
+    function get_sub_details_url(tab_name, id) {
+        var finalUrl = sub_details_url.replace('/0/', '/' + tab_name + '/'); // Replace placeholder with actual ID
+        finalUrl = finalUrl.replace('/1', '/' + id + ''); // Replace placeholder with actual ID
+        console.log(finalUrl)
+        return finalUrl
+    }
+    // Function to create table header
+    function defineColumns(tab_name) {
+        var columns = []
+        var fields = get_fields(tab_name)
+        for (key in fields) {
+            columns.push({data:key})
+        }
+        columns.push({data: null})
+        return columns
+    }
+    function loaddata(tab_name, serverSide) {
+        setup_csrf();
+        var html_table_name = '#listDataTable-'+tab_name
+        var tbody = document.querySelector(html_table_name + ' tbody');
+        if (!(tbody && tbody.rows.length > 0)){
+            $(html_table_name).DataTable({
+                "processing": true,
+                "serverSide": (serverSide === 1)? true:false, // set to true if using django view for pagging
+                "ajax": {
+                    "url": get_data_url(tab_name),
+                    "type": 'POST',
+                    "error": function(xhr, error, code) {
+                        // Hide the default alert
+                        console.log("DataTables error: ", error);
+                        console.log("Detailed information: ", xhr.responseText);
+                        // Show custom error message
+                        $('#listDataTable-'+tab_name).html('<div class="alert alert-danger">System error</div>');
+                    }
+                },
+                "columns": defineColumns(tab_name),  // 使用后端传递的列定义
+                "dom": 'Bfrtip',
+                "buttons": ['pageLength','colvis', 'csv'], 
+                "order": [[1, 'desc']], // order by column index, satrting from 0; 1 is change time 
+                "columnDefs": [
+                    {
+                        "targets": -1, // Target the last column (index -1)
+                        "data": null, // Use null if you're not binding any specific data
+                        "render": function (data, type, row) {
+                            // Construct the href using the file data
+                            return '<a href="'+get_sub_details_url(tab_name, row['id'])+ '" target="_blank">Details</a>';
+                        }
+                    }
+                ],
+            });
+        }
+    };
+</script>
+{% endblock%}
+

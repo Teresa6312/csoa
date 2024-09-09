@@ -1,0 +1,119 @@
+{% extends "base/app_base.html" %}
+{% load i18n static %}
+{% load tz %}
+
+
+{% block extrahead %}{{ block.super }}
+<script src="/static/DataTables/datatables.min.js"></script>
+<script src="/static/DataTables/datatables.js"></script>
+<script src="/static/js/common.js"></script>
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<!-- https://cdn.datatables.net/ -->
+<link type="text/css"  href="/static/DataTables/datatables.min.css" rel="stylesheet">
+<link type="text/css"  href="/static/DataTables/datatables.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<a href="{% url 'app:app_case_workflow' mini_app.key case_instance.form.code case_instance.id %}" target="_blank">
+    <p>View flow</p>
+</a>
+<div class="w3-row">
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Initial By
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.created_by}}
+        </div>
+    </div>
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Initial By Team
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.case_team}}
+        </div>
+    </div>
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Created At
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.created_at|timezone:"America/New_York"|date:"m/d/Y H:i:s"}}
+        </div>
+    </div>
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Case Status
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.status}}
+        </div>
+    </div>
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Updated By
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.updated_by}}
+        </div>
+    </div>
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Updated At
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.updated_at|timezone:"America/New_York"|date:"m/d/Y H:i:s"}}
+        </div>
+    </div>
+</div>
+
+{% include "jsonForm/form_case_data_block.html" with section_datas=section_datas %}
+
+<div class="w3-bar w3-grey w3-margin">
+    <button class="w3-bar-item w3-button" onclick="openTab('Tasks')">Tasks</button>
+    <button class="w3-bar-item w3-button" onclick="openTab('History')">History</button>
+    <button class="w3-bar-item w3-button" onclick="openTab('Document')">Document</button>
+</div>
+<div id="Tasks" class="w3-container w3-display-container case_tab">
+    {% include "base/list_block.html" with queryset=task_instances fields=task_fields %}
+    <div class="w3-container">
+        {% for form in pending_task_forms%}
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{form.as_p}}
+                <button type="submit">Submit</button>
+            </form>
+        {% endfor %}
+    </div>
+</div>
+  
+<div id="History" class="w3-container w3-display-container case_tab" style="display:none">
+    {% include "base/list_block_api_audit_history.html" with audit_url=history_data_url audit_fields=history_fields audit_serverSide=0 %}
+</div>
+
+<div id="Document" class="w3-container w3-display-container case_tab" style="display:none">
+    {% include "base/list_block_api_document.html" with file_data_url=file_data_url file_fields=file_fields file_serverSide=0 %}
+</div>
+
+<script>
+    function openTab(name) {
+      var i;
+      var x = document.getElementsByClassName("case_tab");
+      for (i = 0; i < x.length; i++) {
+        x[i].style.display = "none";  
+      }
+      document.getElementById(name).style.display = "block";  
+      if(name == 'History'){
+        loadAuditData()
+      }
+      if(name == 'Document'){
+        loaddata()
+      }
+    }
+    
+</script>
+{% endblock%}
+

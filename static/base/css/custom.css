@@ -1,0 +1,180 @@
+:root {
+    --primary: #E73229;
+    --primary-hover: #a41515;
+    --secondary: #121a50;
+    --secondary-hover: #262c57;
+    --accent: #f5dd5d;
+    --primary-fg: #fff;
+
+    --body-fg: #333;
+    --body-bg: #fff;
+    --body-quiet-color: #666;
+    --body-loud-color: #000;
+
+    --header-color: #ffc;
+    --header-branding-color: var(--accent);
+    --header-bg: var(--secondary);
+    --header-link-color: var(--primary-fg);
+
+    --breadcrumbs-fg: #c4dce8;
+    --breadcrumbs-link-fg: var(--body-bg);
+    --breadcrumbs-bg: #1c2875;
+
+    --link-fg: var(--secondary);
+    --link-hover-color: #f5dd5d;
+    --link-selected-fg: #333;
+
+    --hairline-color: #e8e8e8;
+    --border-color: #ccc;
+
+    --error-fg: var(--primary);
+
+    --message-success-bg: #dfd;
+    --message-warning-bg: #ffc;
+    --message-error-bg: #ffefef;
+
+    --darkened-bg: #f8f8f8; /* A bit darker than --body-bg */
+    --selected-bg: #e4e4e4; /* E.g. selected table cells */
+    --selected-row: #ffc;
+
+    --button-fg: #fff;
+    --button-bg: var(--secondary);
+    --button-hover-bg: var(--secondary-hover);
+    --default-button-bg: var(--secondary);     
+    --default-button-hover-bg: var(--secondary-hover);
+    --close-button-bg: #747474;
+    --close-button-hover-bg: #333;
+    --delete-button-bg: var(--primary);
+    --delete-button-hover-bg: var(--primary-hover);
+}
+
+
+
+/* 
+:root {
+    --primary: #79aec8;
+    --secondary: #417690;
+    --accent: #f5dd5d;
+    --primary-fg: #fff;
+
+    --body-fg: #333;
+    --body-bg: #fff;
+    --body-quiet-color: #666;
+    --body-loud-color: #000;
+
+    --header-color: #ffc;
+    --header-branding-color: var(--accent);
+    --header-bg: var(--secondary);
+    --header-link-color: var(--primary-fg);
+
+    --breadcrumbs-fg: #c4dce8;
+    --breadcrumbs-link-fg: var(--body-bg);
+    --breadcrumbs-bg: #264b5d;
+
+    --link-fg: #417893;
+    --link-hover-color: #036;
+    --link-selected-fg: var(--secondary);
+
+    --hairline-color: #e8e8e8;
+    --border-color: #ccc;
+
+    --error-fg: #ba2121;
+
+    --message-success-bg: #dfd;
+    --message-warning-bg: #ffc;
+    --message-error-bg: #ffefef;
+
+    --darkened-bg: #f8f8f8;
+    --selected-bg: #e4e4e4; 
+    --selected-row: #ffc;
+
+    --button-fg: #fff;
+    --button-bg: var(--secondary);
+    --button-hover-bg: #205067;
+    --default-button-bg: #205067;
+    --default-button-hover-bg: var(--secondary);
+    --close-button-bg: #747474;
+    --close-button-hover-bg: #333;
+    --delete-button-bg: #ba2121;
+    --delete-button-hover-bg: #a41515;
+
+    --object-tools-fg: var(--button-fg);
+    --object-tools-bg: var(--close-button-bg);
+    --object-tools-hover-bg: var(--close-button-hover-bg);
+
+} */
+
+body{
+    background-image: url("/static/image/home_background.png");
+    background-size: 100%;
+}
+#main{
+    background-image: url("/static/image/background.png");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: center bottom 0vw;
+    padding-bottom: 10vw;
+  }
+
+#site-name img {
+    width: auto;
+    height: inherit;
+    max-width: 100px;
+}
+i:hover {
+    cursor:pointer;
+}
+
+/* fix delete buttom style override by w3 css */
+.submit-row a.deletelink {
+    height: 2.1875rem;
+    line-height: 0.9375rem;
+}
+/* fix delete buttom style override by w3 css */
+.button .cancel-link *,*:before,*:after{
+    box-sizing:content-box !important;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    padding: 10px;
+  }
+.grid-item {
+    padding: 20px;
+    font-size: 30px;
+    text-align: center;
+  }
+.logo-red {
+    color: var(--primary)!important; 
+}
+.logo-navy {
+    color: var(--secondary)!important; 
+}
+.logo-red-background {
+    background: var(--primary)!important; 
+}
+.logo-navy-background {
+    background: var(--secondary)!important; 
+}
+#header {
+    background: none;
+    color: var(--secondary);
+    justify-content:unset;
+}
+.dtsb-criteria select{
+    padding:0 !important;
+}
+.aligned label {
+    width: auto;
+}
+.delete-confirmation form .cancel-link{
+    height: auto;
+}
+#site-name a:link, #site-name a:visited {
+    color: var(--secondary);
+    font-size: xx-large;
+}
+.inline-group .tabular td.original p {
+    height: auto;
+}

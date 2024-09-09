@@ -1,0 +1,21 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% load custom_tags %}
+
+{% block title%}
+{{title}}
+{% endblock%}
+
+{% block content %}
+<div class="grid-container">
+    {% for form in forms %}
+        <div class="grid-item">
+            <i class="fa fa-file-text w3-jumbo" onclick="window.location.href='{{form.get_absolute_url.new}}'"></i>
+            <p>{{form}}</p>
+        </div>
+    {% endfor %}
+  </div>
+{% endblock%}
+
+{% block footer_line %}
+{% endblock %}

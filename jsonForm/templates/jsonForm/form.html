@@ -1,0 +1,14 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% load custom_tags %}
+
+{% block title%}
+{{form}}
+{% endblock%}
+
+{% block content %}
+{% include "jsonForm/form_block.html" with form=form section_forms=section_forms case_form=case_form %}
+{% endblock%}
+
+{% block footer_line %}
+{% endblock %}

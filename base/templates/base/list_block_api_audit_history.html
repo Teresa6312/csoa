@@ -1,0 +1,52 @@
+{% block content %}
+<table id="listAuditDataTable" class="display w3-table">
+    <thead>
+        <tr>
+            <th>Object</th>
+            <th>Changed Time</th>
+            <th>Changed Type</th>
+            <th>Changed By</th>
+            <th>Changes</th>
+        </tr>
+    </thead>
+</table>
+<script>
+    const audit_fields = {{ audit_fields|safe }};
+    const audit_url = "{{ audit_url|safe }}";
+    const audit_serverSide = {{ audit_serverSide|default:0}};
+    var toLoadAuditData = true
+    // Function to create table header
+    function defineAuditColumns() {
+        var columns = []
+        for (key in audit_fields) {
+            columns.push({data:key})
+        }
+        return columns
+    }
+    function loadAuditData() {
+        if (toLoadAuditData ) {
+            setup_csrf();
+            $('#listAuditDataTable').DataTable({
+                "processing": true,
+                "serverSide": (audit_serverSide === 1)? true:false, // set to true if using django view for pagging
+                "ajax": {
+                    "url": audit_url,
+                    "type": 'POST',
+                    "error": function(xhr, error, code) {
+                        // Hide the default alert
+                        console.log("DataTables error: ", error);
+                        console.log("Detailed information: ", xhr.responseText);
+                        // Show custom error message
+                        $('#listAuditDataTable').html('<div class="alert alert-danger">System error</div>');
+                    }
+                },
+                "columns": defineAuditColumns(),  // 使用后端传递的列定义
+                "dom": 'Bfrtip',
+                "buttons": ['pageLength','colvis', 'csv'], 
+                "order": [[1, 'desc']] // order by column index, satrting from 0; 1 is change time 
+            });   
+            toLoadAuditData = false
+        }
+    };
+</script>
+{% endblock%}

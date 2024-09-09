@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrahead %}{{ block.super }}
+<script src="/static/DataTables/datatables.min.js"></script>
+<script src="/static/DataTables/datatables.js"></script>
+<script src="/static/js/common.js"></script>
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<!-- https://cdn.datatables.net/ -->
+<link type="text/css"  href="/static/DataTables/datatables.min.css" rel="stylesheet">
+<link type="text/css"  href="/static/DataTables/datatables.css" rel="stylesheet">
+{% endblock %}
+
+{% block title%}
+{% trans 'User Profile' %}
+{% endblock%}
+
+{% block content %}
+<div class="w3-container w3-margin">
+    {% include "base/object_display_block.html" with object_data=profile object_fields=fields %}
+</div>
+<div class="w3-container w3-margin w3-row">
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">Teams</div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {% for team in request.user.team.all %}
+            <p>{{team}}</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="w3-container w3-margin">
+    {% include "base/list_block.html" with queryset=permission fields=permission_fields %}
+</div>
+{% endblock%}
+

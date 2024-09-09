@@ -1,0 +1,41 @@
+{% extends "admin/base_site.html" %}
+
+{% block content_title %}Workflow Diagram{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://d3js.org/d3.v6.min.js"></script>
+<script src="/static/js/common.js"></script>
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<script src="https://d3js.org/d3.v6.min.js"></script>
+<style>
+    .node rect {
+        stroke: #000;
+        stroke-width: 2px;
+    }
+
+    .link {
+        fill: none;
+        stroke: #000;
+        stroke-width: 2px;
+    }
+
+    .label {
+        font: 12px sans-serif;
+        fill: #000;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block title %}
+Workflow Diagram
+{% endblock %}
+
+{% block content %}
+{% include "jsonForm/workflow_block.html"%}
+{% endblock %}
+

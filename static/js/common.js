@@ -42,8 +42,6 @@
 //     });
 // }
 
-
-
 function splitIfContains(inputString, delimiter) {
     if (inputString.includes(delimiter)) {
         return inputString.split(delimiter);
@@ -78,4 +76,31 @@ function setup_csrf() {
             }
         }
     })
+}
+
+
+function createActionLink(id, pattern, url) {
+    let result = ""
+    if(pattern.endsWith('-filter')){
+        result = url.replace(pattern, '/'+id+'-filter')
+    }else if (pattern.endsWith('-filter/')){
+        result = url.replace(pattern, '/'+id+'-filter/')
+    }else if (pattern.endsWith('/') && pattern.startsWith('/')){
+        result = url.replace(pattern, '/'+id+'/')
+    }
+    return result
+}
+
+function createFileDownloadLink(file, file_download_url) {
+    let result = ""
+    if(file instanceof Array){
+        file.forEach(record => {
+            let url = createActionLink(record['id'], '/0-filter', file_download_url)
+            result = result + '<a href="'+url+ '" download>'+record['name']+'</a>&nbsp;'
+        })
+    } else{
+        let url = createActionLink(file['id'], '/0-filter', file_download_url)
+        result = result + '<a href="'+url+ '" download>'+file['name']+'</a>'
+    }
+    return result
 }

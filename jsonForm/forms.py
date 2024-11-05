@@ -3,15 +3,17 @@ import json
 from django.forms import formset_factory
 from base.util_model import get_select_choices
 from base.util import convert_date_format
-from base.util_model import get_file_by_pk
 from base.validators import get_validator
-from base.forms import MultipleFileField
+from base.forms import MultipleFileField, CustomClearableFileInput
 from userManagement.models import CustomUser, Team, AppMenu, Permission, Department
-from .models import FormTemplate, Workflow, Task, TaskInstance, DecisionPoint, Case
+from .models import FormTemplate, Workflow, Task, TaskInstance, DecisionPoint
 from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 from django.db.models import Q
-from base.util_model import handle_uploaded_file
+from base.util_files import handle_uploaded_file
+
+import logging
+logger = logging.getLogger('django')
 class CaseForm(forms.Form):
 	created_by = forms.ModelChoiceField(queryset=CustomUser.objects.filter(is_active=True), required=True, label='Initial By')
 	case_team = forms.ModelChoiceField(queryset=Team.objects.filter(is_active=True),  required=False, label='Initial By Team')
@@ -47,7 +49,8 @@ def create_dynamic_form_section(json_str, form_section_id=None, instance=None):
 		nested_formset_fields = {}
 		def __init__(self, *args, **kwargs):
 			super().__init__(*args, **kwargs)
-			
+			uploaded_files = kwargs.get('files', None) 
+			initial = self.initial or kwargs.get('initial', {}) if instance is None else instance
 			if form_section_id is not None:
 				self.fields['form_section_id'] = forms.IntegerField(
 					initial=form_section_id,
@@ -60,7 +63,7 @@ def create_dynamic_form_section(json_str, form_section_id=None, instance=None):
 				field_length = field_props.get('length', None)
 				field_required = field_props.get('required', False)
 				field_placeholder = field_props.get('placeholder', '')
-				field_default = field_props.get('default', None)
+				field_default =  field_props.get('default', None) if initial.get(field_name, None) is None else initial.get(field_name)
 				field_hidden = field_props.get('hidden', False)
 				field_max_digits = field_props.get('max_digits', 10)
 				field_decimal_places = field_props.get('decimal_places', 2)
@@ -150,26 +153,41 @@ def create_dynamic_form_section(json_str, form_section_id=None, instance=None):
 						widget=forms.DateInput(attrs={'placeholder': field_placeholder, 'type': 'date'}) #
 					)
 				elif field_type == 'list':
-					nested_formset_class = create_dynamic_form_section_formset(field_props['fields'], field_required)
-					self.nested_formsets[field_name] = nested_formset_class(prefix=field_name)
+					nested_formset = create_dynamic_form_section_formset(
+						field_props['fields'], 
+						field_required, 
+						instance=field_default, 
+						prefix=field_name,
+						post_data=kwargs.get('data', None),
+						post_file=kwargs.get('files', None)
+						)
+					self.nested_formsets[field_name] = nested_formset
 					self.nested_formset_fields[field_name] = {
 						'fields': field_props['fields'],
 						'label' : field_label,
 						'required': field_required
 					}
 				elif field_type == 'file':
-					# still not able to handle if user select multiple files and save form as draft, when user eidt the case, the files data are not able to display if there is more than one files
+					prefix = kwargs.get('prefix', None)
+					if uploaded_files is not None:
+						file_key =  field_name if prefix is None else f"{prefix}-{field_name}"
+						if uploaded_files.get(file_key) is not None :
+							field_default = uploaded_files.get(file_key)
 					if field_props.get('multiple', False):
 						self.fields[field_name] = MultipleFileField(
 							label=field_label,
 							help_text=field_helptext,
-							required=field_required
+							required=field_required,
+							initial= field_default,
+							widget = CustomClearableFileInput(original_required=field_required)
 						)
 					else:
 						self.fields[field_name] = forms.FileField(
 							label=field_label,
 							help_text=field_helptext,
-							required=field_required
+							required=field_required,
+							initial=field_default,
+							widget = CustomClearableFileInput(original_required=field_required)
 						)
 				if field_hidden:
 					self.fields[field_name].widget = forms.HiddenInput()
@@ -177,39 +195,22 @@ def create_dynamic_form_section(json_str, form_section_id=None, instance=None):
 			for field_name, field in self.fields.items():
 				if field.required:
 					field.label = f"{field.label} *" if field.label else '*'
-					
-			# Populate initial data if instance is provided
-			if instance:
-				for field_name in self.fields:
-					if field_name in instance.keys() and not field_name == 'form_section_id':
-						if isinstance(self.fields[field_name], forms.DateField):
-							self.fields[field_name].initial = convert_date_format(instance.get(field_name, None))
-						elif isinstance(self.fields[field_name], MultipleFileField) or isinstance(self.fields[field_name], forms.FileField):
-							files =  instance.get(field_name, None)
-							if files is not None and isinstance(files, list):
-								self.fields[field_name].initial = [get_file_by_pk(file).file for file in files if get_file_by_pk(file) is not None]
-							elif files is not None and isinstance(files, str):
-								self.fields[field_name].initial = get_file_by_pk(files).file  if get_file_by_pk(files) is not None else None
-						else:
-							self.fields[field_name].initial = instance.get(field_name, None)
-				for formset_name, formset_class in self.nested_formsets.items():
-					if formset_name in instance:
-						initial_data = instance.get(formset_name, None)
-						if initial_data is not None and not len(initial_data) == 0:
-							nested_formset_class = create_dynamic_form_section_formset(self.nested_formset_fields[formset_name]['fields'], field_required)
-							self.nested_formsets[formset_name] = nested_formset_class(prefix=formset_name, initial=initial_data)
 	return DynamicFormSection
 
-def create_dynamic_form_section_formset(fields, field_required=False, instance=None):
-	DynamicFormSection = create_dynamic_form_section(fields, instance=instance)
+def create_dynamic_form_section_formset(fields, field_required=False, instance=None, prefix=None, post_data=None, post_file=None):
+	DynamicFormSection = create_dynamic_form_section(fields)
 
 	DynamicFormSectionFormSet = formset_factory(
 		DynamicFormSection,
 		# formset=DynamicFormSectionFormSet,
 		extra=1 if field_required and instance is None else 0,
-		can_delete=True
+		can_delete=True,
 	)
-	return DynamicFormSectionFormSet
+	if post_data is not None:
+		formset = DynamicFormSectionFormSet(post_data, post_file, prefix=prefix, initial=instance)
+	else:
+		formset = DynamicFormSectionFormSet(prefix=prefix, initial=instance)
+	return formset
 
 class FormTemplateForm(forms.ModelForm):
 	class Meta:
@@ -338,7 +339,7 @@ class TaskInlineFormSet(BaseInlineFormSet):
 					raise ValidationError(
 								"Either 'assign to' or 'assign to role' field should contain value"
 							)
-				
+
 class TaskInstanceForm(forms.ModelForm):
 	task_str = forms.CharField(label='Task')
 	assign_to_str = forms.CharField(label='Assign to')
@@ -348,7 +349,9 @@ class TaskInstanceForm(forms.ModelForm):
 		fields = ['task_str', 'assign_to_str', 'assign_to_user', 'decision_point', 'comment', 'add_files']
 
 	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
+		self.request = kwargs.pop('request', None)
+		
+		super(TaskInstanceForm, self).__init__(*args, **kwargs)
 		if self.instance.id:
 			task = TaskInstance.objects.get(id = self.instance.id)
 			self.fields['task_str'].initial = task.task
@@ -358,23 +361,35 @@ class TaskInstanceForm(forms.ModelForm):
 				text = f'{assign_to.team.full_name}'
 			elif assign_to.department is not None:
 				text = f'{assign_to.department.full_name}'
-				# self.fields['assign_to_user'].queryset = CustomUser.objects.filter(department=assign_to.department, is_active=True)
 			elif assign_to.company is not None:
 				text = f'{assign_to.company.full_name}'
 			text = f'{assign_to.role.name}({text})'
 			self.fields['assign_to_str'].initial = text
 			self.fields['task_str'].widget.attrs['readonly'] = True
 			self.fields['assign_to_str'].widget.attrs['readonly'] = True
-			self.fields['assign_to_user'].required = True
-			self.fields['assign_to_user'].queryset = CustomUser.objects.filter(permissions=assign_to, is_active=True)
 			self.fields['decision_point'].required = True
 			self.fields['decision_point'].queryset = DecisionPoint.objects.filter(task=task.task)
+			
+			if self.request.user.is_superuser:
+				self.fields['assign_to_user'].required = True
+				self.fields['assign_to_user'].queryset = CustomUser.objects.filter(permissions=assign_to, is_active=True)
+			else:
+				self.fields['assign_to_user'].widget = forms.HiddenInput()
+				self.fields['assign_to_user'].initial = CustomUser.objects.get(id=self.request.user.id)
+
+			self.fields['comment'].widget=forms.Textarea(attrs={'placeholder': 'Please provide your comments'})
+
+		for field_name, field in self.fields.items():
+			if field.required:
+				self.fields[field_name].label = self.fields[field_name].label + '*'
+
 	def save(self, commit=True):
 		instance = super().save(commit=False)
 		uploaded_files = self.cleaned_data.get('add_files')
 		if uploaded_files:
-			file_list = handle_uploaded_file(None,uploaded_files)
+			file_list = handle_uploaded_file(self.request,uploaded_files, format='file')
 			for f in file_list:
 				instance.files.add(f)
 		instance.is_active = False
+		instance.assign_to_user = self.request.user
 		return super().save(commit=commit)

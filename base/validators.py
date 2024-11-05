@@ -31,5 +31,6 @@ VALIDATOR = {
     'phone_regex' : { 'regex': r'^\d{3}-\d{3}-\d{4}$', 'message': "Invalid phone number format. Enter as 000-000-0000." },
     'number_str': { 'regex': r'^\d+$', 'message': "Invalid input, only number is allowed" },
     'number_str_0_8': { 'regex': r'^0\d{7}$', 'message': "8-digit number, start with 0" },
-    'no_space_str_w_-': {'regex':r'^[a-zA-Z0-9_-]+$', 'message': "Only accepts letters (a-z, A-Z), numbers (0-9), dashes (-), and underscores (_)." }
+    'no_space_str_w_-': {'regex':r'^[a-zA-Z][a-zA-Z0-9_]*$', 'message': "Start with letters, and only accepts letters (a-z, A-Z), numbers (0-9), dashes (-), and underscores (_)." },
+    'no_space_str_w_': {'regex':r'^[a-zA-Z][a-zA-Z0-9_]*$', 'message': "Start with letters, and only accepts letters (a-z, A-Z), numbers (0-9), and underscores (_)." }
 }

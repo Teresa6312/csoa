@@ -1,0 +1,36 @@
+{% block content %}
+<table id="tasksTable" class="display">
+    <thead>
+        <tr>
+            {% for key, value  in fields.items %}
+                <th>{{value}}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<script>
+    // The data passed from Django view
+    const fields = {{ fields|safe }};
+    const records = {{ queryset|safe }};
+
+    // Function to create table header
+    function defineColumns() {
+        var columns = []
+        for (key in fields) {
+            columns.push({data:key})
+        }
+        return columns
+    }
+
+    $(document).ready(
+        $('#tasksTable').DataTable({
+            dom: 'Bfrtip',
+            columns: defineColumns(),
+            data: records,
+            buttons: ['pageLength','colvis', 'csv'],    
+        })
+    )
+</script>
+{% endblock %}

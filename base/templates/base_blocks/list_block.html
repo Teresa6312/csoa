@@ -1,0 +1,48 @@
+{% block content %}
+<table id="listTable" class="display">
+    <thead>
+        <tr>
+            {% for key, value  in fields.items %}
+                <th>{{value}}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<script>
+    // The data passed from Django view
+    const fields = {{ fields|safe }};
+    const records = {{ queryset|safe }};
+    const exportCsv = {{ exportCsv|default:False|yesno:"true,false" }};
+    const buttons = ['pageLength','colvis']
+
+    // Function to create table header
+    function define_columns() {
+        let columns = []
+        for (key in fields) {
+            columns.push({data:key})
+        }
+        return columns
+    }
+
+    $(document).ready(function(){
+        if(exportCsv) {
+            buttons.push('csv')
+        }
+        if(records.length !== undefined && records.length > 0) {
+            $('#listTable').DataTable({
+                dom: 'Bfrtip',
+                columns: define_columns(),
+                data: records,
+                buttons: buttons    
+            })
+        } else {
+            let tr = document.createElement('tr');
+            tr.innerText = "No data"
+            $('#listTable tbody').append(tr)
+        }
+
+    })
+</script>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% block content %}
+<table id="listDataTable" class="display w3-table">
+    <thead>
+        <tr>
+            {% for key, value  in fields.items %}
+            <th>{{value}}</th>
+            {% endfor %}
+            <th>Action</th>
+        </tr>
+    </thead>
+</table>
+<script>
+    const perm_exportCsv = {{ permission__exportCsv|default:False|yesno:"true,false" }};
+    const perm_details = {{ permission__details|default:False|yesno:"true,false" }};
+    const perm_edit = {{ permission__edit|default:False|yesno:"true,false" }};
+
+    const buttons = ['pageLength','colvis']
+
+    const data_fields = {{ fields|safe }};
+    const data_url = "{{data_url}}";
+    const id_key = "{{ id_key }}"
+    const other_key = "{{ other_key|default:''}}"
+
+    var details_url = "{{ details_url|default:None }}"; // Use "0" as a placeholder for the ID
+    var edit_url = "{{ edit_url|default:None }}"; // Use "0" as a placeholder for the ID
+
+    // const path = '{{ request.path|safe }}';
+    var toLoadData = true
+    // Function to create table header
+    function defineColumns() {
+        var columns = []
+        for (key in data_fields) {
+            columns.push({data:key})
+        }
+        columns.push({data: 'Action'})
+        return columns
+    }
+    
+    function defineActionColumns() {
+        let defaultContent = ""
+        if (perm_details) {
+            defaultContent = defaultContent + "<a class='w3-padding'' id='perm_details' href='#'>Details</a>"
+        }
+        if (perm_edit) {
+            defaultContent = defaultContent + "<a id='perm_edit'href='#'>Edit</a>"
+        }
+
+        return  [
+                {
+                    "targets": -1, // Target the last column (index -1)
+                    "data": null, // Use null if you're not binding any specific data
+                    "defaultContent": defaultContent // Default link/button
+                }
+        ]
+    }
+
+    $(document).ready(function() {
+        if(perm_exportCsv) {
+            buttons.push('csv')
+        }
+        setup_csrf();
+        var table = $('#listDataTable').DataTable({
+            "processing": true,
+            "serverSide": true, 
+            "ajax": {
+                "url": data_url,
+                "type": 'POST',
+                "error": function(xhr, error, code) {
+                    // Hide the default alert
+                    console.log("DataTables error: ", error);
+                    console.log("Detailed information: ", xhr.responseText);
+                    // Show custom error message
+                    const message = xhr.responseJSON['message']
+                    if(message === undefined) {
+                        $('#listDataTable').html('<div class="alert alert-danger">System error</div>');
+                        alert("System error");
+                    } else {
+                        $('#listDataTable').html('<div class="alert alert-danger">'+message+'</div>');
+                        alert(message);
+                    }
+                    window.location.href = '{{ request.path|safe }}';
+                }
+            },
+            "columns": defineColumns(),  // 使用后端传递的列定义
+            "dom": 'QBfrtip',
+            "idSrc": id_key,
+            "buttons": buttons,
+            "columnDefs": defineActionColumns(),
+            "order": [[1, 'desc']] // order by column index, satrting from 0; 1 is change time 
+        }); 
+        // Correct the click event binding
+        $('#listDataTable tbody').on('click', '#perm_details', function () {
+            let data = table.row($(this).parents('tr')).data();
+            let finalUrl = ""
+            if (other_key=="") {
+                finalUrl = createActionLink(data[id_key], '/0-filter', details_url);
+            } else {
+                let url = createActionLink(data[other_key], '/0/', details_url);
+                finalUrl = createActionLink(data[id_key], '/1-filter', url);
+            }
+            window.location.href = finalUrl;
+        });
+        // Correct the click event binding
+        $('#listDataTable tbody').on('click', '#perm_edit', function () {
+            let data = table.row($(this).parents('tr')).data();     
+            let finalUrl = ""
+            if (other_key=="") {
+                finalUrl = createActionLink(data[id_key], '/0-filter', edit_url);
+            } else {
+                let url = createActionLink(data[other_key], '/0/', edit_url);
+                finalUrl = createActionLink(data[id_key], '/1-filter', url);
+            }
+            window.location.href = finalUrl;
+        });
+
+    })
+</script>
+{% endblock %}

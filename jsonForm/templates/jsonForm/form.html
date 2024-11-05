@@ -1,4 +1,4 @@
-{% extends "admin/base_site.html" %}
+{% extends "base/base.html" %}
 {% load i18n static %}
 {% load custom_tags %}
 
@@ -7,7 +7,12 @@
 {% endblock%}
 
 {% block content %}
-{% include "jsonForm/form_block.html" with form=form section_forms=section_forms case_form=case_form %}
+{% if permission__workflow and form.workflow %}
+    <a id="workflow"  href="{% url 'forms:workflow_view' form.workflow.id  %}" target="_blank" class="w3-xlarge">
+        <p>View flow</p>
+    </a>
+{% endif %}
+{% include "jsonForm_blocks/form_block.html" with form=form section_forms=section_forms case_form=case_form view=view%}
 {% endblock%}
 
 {% block footer_line %}

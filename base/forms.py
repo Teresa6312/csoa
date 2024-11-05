@@ -1,4 +1,5 @@
 from django import forms
+
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
@@ -23,3 +24,18 @@ class HeaderingForm(forms.Form):
         initial_form_value = kwargs.pop('initial_form_value', '')
         super().__init__(*args, **kwargs)
         self.fields['initial_form_value'].initial = initial_form_value
+
+class CustomClearableFileInput(forms.ClearableFileInput):
+    template_name = 'base_weights/custom_clearable_file_input.html'
+
+    def __init__(self, *args, **kwargs):
+        # Accept an additional parameter for the initial file URL if needed
+        self.original_required = kwargs.pop('original_required', False)
+        super().__init__(*args, **kwargs)
+    
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context['widget']['is_initial'] = bool(value is not None and len(value)> 0 and value[0] is not None)  # Set is_initial to True if a file exists
+        context['widget']['display_value'] = value if value is not None and len(value)> 0 and value[0] is not None else None
+        context['widget']['required'] = self.original_required
+        return context

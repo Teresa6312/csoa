@@ -1,57 +1,11 @@
-from django.db.models.signals import post_save, post_delete, pre_save, pre_delete
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from .models import Workflow, Task, DecisionPoint, Case, WorkflowInstance, TaskInstance, Permission, FormSection, FormTemplate
-from base.redis import create_redis_key_json, delete_redis_key
+from .models import  Case, WorkflowInstance, TaskInstance, Permission
+
 import uuid
 import logging
 logger = logging.getLogger('django')
 
-@receiver(post_save, sender=Workflow)
-def workflow_saved(sender, instance, created, **kwargs):
-    instance.get_workflow_data()
-
-@receiver([post_save], sender=Task)
-def task_saved(sender, instance, created, **kwargs):
-    if instance.workflow is not None:
-        instance.workflow.get_workflow_data()
-
-@receiver(post_delete, sender=Task)
-def task_deleted(sender, instance, **kwargs):
-    if instance.workflow is not None:
-        instance.workflow.get_workflow_data()
-
-@receiver([post_save], sender=DecisionPoint)
-def decisionpoint_saved(sender, instance, created, **kwargs):
-    if instance.task is not None and instance.task.workflow is not None:
-        instance.task.workflow.get_workflow_data()
-
-@receiver(post_delete, sender=DecisionPoint)
-def decisionpoint_deleted(sender, instance, **kwargs):
-    if instance.task is not None and instance.task.workflow is not None:
-        instance.task.workflow.get_workflow_data()
-
-@receiver(pre_delete, sender=Workflow)
-def workflow_before_delete_handle(sender, instance, **kwargs):
-    delete_redis_key(f'workflow:{instance.id}')
-
-@receiver(post_save, sender=FormTemplate)
-def form_saved(sender, instance, created, **kwargs):
-    data = instance.get_key_list
-    create_redis_key_json(f'form_header:{instance.id}', data)
-
-@receiver([post_save], sender=FormSection)
-def section_saved(sender, instance, created, **kwargs):
-    data = instance.template.get_key_list
-    create_redis_key_json(f'form_header:{instance.template.id}', data)
-
-@receiver(post_delete, sender=FormSection)
-def section_deleted(sender, instance, **kwargs):
-    data = instance.template.get_key_list
-    create_redis_key_json(f'form_header:{instance.template.id}', data)
-
-@receiver([pre_delete], sender=FormTemplate)
-def form_before_delete_handle(sender, instance, **kwargs):
-    delete_redis_key(f'form_header:{instance.id}')
 
 @receiver(pre_save, sender=Case)
 def case_saved(sender, instance, **kwargs):

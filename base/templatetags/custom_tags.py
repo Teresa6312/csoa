@@ -1,9 +1,8 @@
 from django import template
 from django.urls import reverse
-from userManagement.models import Department, Team
-# from django.core.serializers import serialize
-from django.utils.safestring import mark_safe
 from urllib.parse import urlencode
+from django.conf import settings
+from base.models import FileModel
 import json
 
 register = template.Library()
@@ -48,3 +47,14 @@ def get_field_label(instance, field_name):
 @register.simple_tag
 def get_field_value(instance, field_name):
     return getattr(instance, field_name)
+
+@register.simple_tag
+def initi_file_field(file_id, **kwargs):
+    file = FileModel.objects.filter(id=file_id)
+    if file is None:
+        return "No file found"
+    else:
+        file = file.first()
+        # file_url = f"{settings.MEDIA_URL}/{file.file}"
+        # file_field = f'<a href="{file_url}" download>{file.name}</a>'
+        return file.name

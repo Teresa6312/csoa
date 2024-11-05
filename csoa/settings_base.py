@@ -16,8 +16,7 @@ import os
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-
-
+SITE_NAME = 'Supplementary System'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +36,7 @@ INSTALLED_APPS = [
     'base.apps.BaseConfig',
     'userManagement.apps.UsermanagementConfig',
     'jsonForm.apps.JsonformConfig',
+    'modelBase.apps.ModelbaseConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.admindocs',  # Enable admindocs
     'simple_history',
     'axes',
-    'django_tables2',
+    'django_tables2'
 ]
 
 MIDDLEWARE = [
@@ -61,9 +61,15 @@ MIDDLEWARE = [
     # middleware to required user login
     'csoa.middleware.LoginRequiredMiddleware',
     # middleware to print user login/logout log
-    'userManagement.middleware.UserActivityMiddleware',
+    'base.middleware.UserActivityMiddleware',
     # middleware to set menu in request
-    'userManagement.middleware.MenuMiddleware',
+    'base.middleware.MenuMiddleware',
+    # middleware to Ensure that multiple database operations are performed in one request 
+    # to avoid data inconsistency caused by failure of some operations
+    'base.middleware.AtomicTransactionMiddleware',
+
+    # # middleware to handle error pages 
+    # 'base.middleware.CustomErrorHandlingMiddleware',
 
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
     # It only formats user lockout messages and renders Axes lockout responses
@@ -124,16 +130,29 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AXES_FAILURE_LIMIT = 3
+# # This sets the number of allowed failed login attempts before a user is locked out.
+
+AXES_COOLOFF_TIME = 6
+# # Specifies the cooldown time (in hours) before failed login attempts are reset.
+
+AXES_ONLY_ADMIN_SITE = False
+# # If set to True, Axes will only apply the login attempt tracking and blocking to the Django admin site.
+
+AXES_LOCKOUT_PARAMETERS = ["username"]
+# # Axes will lock users out based on their username. This can also be configured to include other parameters such as IP address and user agent.
+
+AXES_ENABLE_ACCESS_FAILURE_LOG = True
+# # When enabled, this will log every failed login attempt to the database.
+
+AXES_RESET_ON_SUCCESS = True
+# # If set to True, a successful login will reset the failed login attempts counter for that user.
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
@@ -149,6 +168,7 @@ STATIC_ROOT = BASE_DIR / "staticProd"
 
 MEDIA_URL = '/files/'  # URL prefix for media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'files')  # File system path to the directory for storing media files
+FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20 MB in bytes
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

@@ -7,8 +7,9 @@ from django.urls import reverse
 from django.apps import apps
 import uuid
 from base.validators import get_validator
-from django.shortcuts import get_object_or_404
-from base.redis import create_redis_key_json
+
+from base.cache import global_class_cache_decorator, global_instance_cache_decorator
+from base.util import get_object_or_redirect
 
 # Create your models here.
 class FormTemplate(BaseAuditModel):
@@ -48,7 +49,7 @@ class FormTemplate(BaseAuditModel):
                                 f'Input key must be unique in Section: {related_section}, Duplicated key found {common_keys}'
                             )
     def get_absolute_url(self):
-        return dict(new=reverse('jsonForm:new_case', args=[str(self.id)]))
+        return dict(new=reverse('jsonForm:view', args=[str(self.id)]))
 
     @property
     def control_type(self):
@@ -80,7 +81,7 @@ class FormTemplate(BaseAuditModel):
             raise ValueError(f"backend_app_label and backend_app_model is missing in Form")
         
     def get_section_model_class(self):
-        if self.backend_app_label and self.backend_app_model:
+        if self.backend_app_label and self.backend_app_section_model:
             model_class = apps.get_model(self.backend_app_label, self.backend_app_section_model)
             return model_class
         else:
@@ -90,7 +91,7 @@ class FormTemplate(BaseAuditModel):
         if self.backend_app_label and self.backend_app_model:
             model_class = apps.get_model(self.backend_app_label, self.backend_app_model)
             if model_class:
-                return get_object_or_404(model_class, pk=id)
+                return get_object_or_redirect(model_class, pk=id)
             else:
                 raise ValueError(f"Model '{self.backend_app_label}' not found in app '{self.backend_app_model}'")
         else:
@@ -112,6 +113,22 @@ class FormTemplate(BaseAuditModel):
                 headers = new_fields
                 existed_keys = set(f['key'] for f in new_fields)
         return headers
+
+    @global_class_cache_decorator(cache_key='form_instance')
+    def get_instance_by_code(cls, code):
+        result = get_object_or_redirect(cls, code=code)
+        if result is None:
+            return None
+        else:
+            return result
+    
+    @global_class_cache_decorator(cache_key='form_header')
+    def get_headers_by_code(cls, code):
+        form =  cls.get_instance_by_code(code)
+        if form is not None:
+            return form.get_key_list
+        else:
+            return []
 
 class FormSection(BaseAuditModel):
     index = models.PositiveSmallIntegerField(default=0)
@@ -172,12 +189,12 @@ class FormSection(BaseAuditModel):
                 raise ValueError(f"Model '{self.template.backend_app_label}' not found in app '{self.template.backend_app_section_model}'")
         else:
             raise ValueError(f"backend_app_label and backend_app_section_model is required from template")
-        
+    
     def get_model_instance(self,id):
         if self.template.backend_app_label and self.template.backend_app_section_model:
             model_class = apps.get_model(self.template.backend_app_label, self.template.backend_app_section_model)
             if model_class:
-                return get_object_or_404(model_class, pk=id)
+                return get_object_or_redirect(model_class, pk=id)
             else:
                 raise ValueError(f"Model '{self.template.backend_app_label}' not found in app '{self.template.backend_app_section_model}'")
         else:
@@ -323,6 +340,7 @@ class Workflow(BaseAuditModel):
     def __str__(self):
         return self.name
 
+    @global_instance_cache_decorator(cache_key='workflow')
     def get_workflow_data(self):
         tasks = self.task_workflow.all().order_by('index')
         tasks_data = [
@@ -360,7 +378,6 @@ class Workflow(BaseAuditModel):
             'description': self.description,
             'tasks': tasks_data,
         }
-        create_redis_key_json(f'workflow:{self.id}', data)
         return data
     
     def workflow_linkages(self):
@@ -368,7 +385,13 @@ class Workflow(BaseAuditModel):
         for task in tasks:
            if (not task.assign_to.exists() and self.assign_to_role is None) or (self.assign_to.exists() and self.assign_to_role is not None):
             task.decision_points_task.all()
-            
+    
+    @global_class_cache_decorator(cache_key='workflow')
+    def get_data_by_id(cls, id):
+        result = get_object_or_redirect(cls, pk=id)
+        if result is None:
+            return None
+        return result.get_workflow_data()
 
 class Task(BaseAuditModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -425,7 +448,7 @@ class TaskInstance(BaseAuditModel):
 
     @classmethod
     def selected_fields_info(cls):
-        fields = ['workflow_instance__workflow__name', 'task__name', 'assign_to__role__name', 'assign_to__company__full_name', 'assign_to__department__full_name', 'assign_to__team__full_name', 'assign_to_user__username', 'decision_point__decision', 'comment', 'created_at', 'updated_at','is_active']  # List of fields you want to include
+        fields = ['id', 'workflow_instance__workflow__name', 'task__name', 'assign_to__role__name', 'assign_to__company__full_name', 'assign_to__department__full_name', 'assign_to__team__full_name', 'assign_to_user__username', 'decision_point__decision', 'comment', 'created_at', 'updated_at']  # List of fields you want to include
         field_info = TaskInstance.get_selected_fields_info(fields)
         return field_info
     
@@ -467,11 +490,16 @@ class Case(BaseAuditModel):
             if t.decision_point is None:
                 return False
         return True
+    @classmethod
+    def selected_fields_info(cls):
+        fields = ["id", "form__code", "is_submited","case_department__full_name", "case_team__full_name", "created_by__username", "updated_by__username", "created_at", "updated_at", "status"]  # List of fields you want to include
+        field_info = Case.get_selected_fields_info(fields)
+        return field_info
 
 class CaseData(BaseAuditModel):
     case = models.ForeignKey(Case, on_delete=models.PROTECT,related_name='case_data_case')
     form_section = models.ForeignKey(FormSection, on_delete=models.PROTECT,related_name='case_data_form_section')
-    section_data = models.JSONField()# set validation after save if the data lenght was changed after save, data maybe trancated
+    section_data = models.JSONField(default=dict)# set validation after save if the data lenght was changed after save, data maybe trancated
 
     @classmethod
     def selected_fields_info(cls):

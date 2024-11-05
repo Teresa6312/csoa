@@ -1,0 +1,67 @@
+{% block content %}
+<table id="listAuditDataTable" class="display w3-table">
+    <thead>
+        <tr>
+            <th>Object</th>
+            <th>Changed Time</th>
+            <th>Changed Type</th>
+            <th>Changed By</th>
+            <th>Changes</th>
+        </tr>
+    </thead>
+</table>
+<script>
+    const audit_fields = {{ audit_fields|safe }};
+    const audit_url = "{{ audit_url|safe }}";
+    const audit_serverSide = {{ audit_serverSide|default:0}};
+    const audit_exportCsv = {{ audit_exportCsv|default:False|yesno:"true,false" }};
+    const audit_buttons = ['pageLength','colvis']
+
+    var toLoadAuditData = true
+    // Function to create table header
+    function define_audit_columns() {
+        var columns = []
+        for (key in audit_fields) {
+            columns.push({data:key})
+        }
+        return columns
+    }
+
+    function load_audit_data() {
+        if(audit_exportCsv) {
+            audit_buttons.push('csv')
+        }
+        if (toLoadAuditData ) {
+            setup_csrf();
+            $('#listAuditDataTable').DataTable({
+                "processing": true,
+                "serverSide": (audit_serverSide === 1)? true:false, // set to true if using django view for pagging
+                "ajax": {
+                    "url": audit_url,
+                    "type": 'POST',
+                    "error": function(xhr, error, code) {
+                        // Hide the default alert
+                        console.log("DataTables error: ", error);
+                        console.log("Detailed information: ", xhr.responseText);
+                        // Show custom error message
+                        const message = xhr.responseJSON['message']
+                        if(message === undefined) {
+                            $('#listAuditDataTable').html('<div class="alert alert-danger">System error</div>');
+                            alert("System error");
+                        } else {
+                            $('#listAuditDataTable').html('<div class="alert alert-danger">'+message+'</div>');
+                            alert(message);
+                        }
+                        window.location.href = '{{ request.path|safe }}';
+                    }
+                },
+                "columns": define_audit_columns(),  // 使用后端传递的列定义
+                "dom": 'Bfrtip',
+                "buttons": audit_buttons, 
+                "order": [[1, 'desc']] // order by column index, satrting from 0; 1 is change time 
+            });   
+            toLoadAuditData = false
+        }
+    };
+</script>
+{% endblock%}

@@ -120,6 +120,7 @@ class AppMenuCreateForm(forms.ModelForm):
         instance = super().save(commit=False)
         label = self.cleaned_data.get('label', None)
         instance.key = to_camel_case(label)
+        instance.link = f'/app/{instance.key}/home'
         if commit:
             instance.save()
         return instance
@@ -347,6 +348,7 @@ class CustomGroupForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Reset the queryset for the ManyToManyField
         self.fields['permissions'].widget = forms.CheckboxSelectMultiple()
+        self.fields['menus'].widget = forms.CheckboxSelectMultiple()
         if self.instance.id:
             apps = self.instance.permission_role.all().values('app').distinct()
             menu0 = AppMenu.objects.filter(is_active=True, menu_level=0, id__in=apps).values('id')

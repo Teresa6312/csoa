@@ -13,13 +13,13 @@
 {% block left-sidebar %}{% endblock %}
 
 {% block title %}
-{{ title }} | {{ site_title|default:_('CS SBDMS') }}
+{{ site_title}} | {{ title }}
 {% endblock %}
 
 {% block branding %}
 <div id="site-name" class="w3-xxlarge logo-navy">
     <a href="{% url 'app:home' %}" class="color: red"><img src="{% static 'image/brand_navy.png' %}" alt="logo"/></a>
-    <i><strong><b>Supplementary System</b></strong></i>
+    <i><strong><b>{{site_header}}</b></strong></i>
 </div>
 {% endblock %}
 {% block breadcrumbs %}{% endblock %}

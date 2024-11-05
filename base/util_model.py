@@ -1,10 +1,9 @@
-from userManagement.models import Company, Department, Team, CustomUser, AppMenu
-from jsonForm.models import FormTemplate
-from .models import DictionaryItemModel, FileModel
-from .redis import get_redis_data_json, create_redis_key_queryset
-from django.utils.text import get_valid_filename
-from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
+from userManagement.models import Company, Department, Team, CustomUser
+from .models import DictionaryModel
+from django.core.cache import cache
+from .cache import global_cache_decorator
+from django.db.models.fields.related import ForeignKey, ManyToManyField, OneToOneField
+
 from django.db import models
 import logging
 logger = logging.getLogger('django')
@@ -29,57 +28,35 @@ def get_select_choices_ids(key):
         result = [(i.get('id'), i.get('value')) for i in data]
     return result
 
+@global_cache_decorator(cache_key='global_dict', timeout=1800)
 def get_dictionary(key):
-    data = get_redis_data_json(key)
-    if data is None:
-        if key == 'department_list_active':
-            data = Department.objects.filter(is_active=True)
-        elif key == 'department_list':
-            data = Department.objects.all()
-        elif key == 'team_list_active':
-            data = Team.objects.filter(is_active=True)
-        elif key == 'team_list':
-            data = Team.objects.all()
-        elif key == 'company_list_active':
-            data = Company.objects.filter(is_active=True)
-        elif key == 'company_list':
-            data = Company.objects.all()
-        elif key == 'user_list_active':
-            data = CustomUser.objects.filter(is_active=True)
-        elif key == 'user_list':
-            data = CustomUser.objects.all()
-        elif key.startswith('dict_') :
-            if key.endswith('_active'):
-                data = DictionaryItemModel.objects.filter(is_active=True, dictionary=key.replace('dict_', '').replace('_active', ''))
-            else:
-                data = DictionaryItemModel.objects.filter(dictionary=key.replace('dict_', ''))
-        # data = json.dumps(list(data.values()))
-        create_redis_key_queryset(key, data)
-        return get_redis_data_json(key)
-    return data
-
-def handle_uploaded_file(request, file):
-    try:
-        if isinstance(file, list):
-            file_list = []
-            for f in file:
-                safe_filename = get_valid_filename(f.name)
-                file_instance = FileModel.objects.create(name=safe_filename, file=f)
-                file_list.append(file_instance.pk)
-            if len(file_list) == 1:
-                return file_list[0]
-            else:
-                return file_list
+    data= None
+    if key == 'department_list_active':
+        data = Department.get_active_list()
+    elif key == 'department_list':
+        data = Department.get_list()
+    elif key == 'team_list_active':
+        data = Team.get_active_list()
+    elif key == 'team_list':
+        data = Team.get_list()
+    elif key == 'company_list_active':
+        data = Company.get_active_list()
+    elif key == 'company_list':
+        data = Company.get_list()
+    elif key == 'user_list_active':
+        data = CustomUser.get_active_list()
+    elif key == 'user_list':
+        data = CustomUser.get_list()
+    elif key.startswith('dict_') :
+        if key.endswith('_active'):
+            data = DictionaryModel.get_dictionary_active_items_by_code(code=key.replace('dict_', '').replace('_active', ''))
         else:
-            safe_filename = get_valid_filename(file.name)
-            file_instance = FileModel.objects.create(name=safe_filename, file=file)
-            return file_instance.pk
-    except Exception as e:
-        logger.error(e)
-        messages.error(request, ('Not able to save file!'))
-
-def get_file_by_pk(pk):
-    return FileModel.objects.get(pk=pk)
+            data = DictionaryModel.get_dictionary_items_by_code(code=key.replace('dict_', ''))
+    if data is not None:
+        data = list(data.values())
+    else:
+        []
+    return data
 
 def get_audit_history_fields():
     return {
@@ -90,37 +67,48 @@ def get_audit_history_fields():
         'changes': 'Changes'
     }
 
+@global_cache_decorator(cache_key='audit_data_map')
+def get_audit_field_map(class_name):
+    data_map = {}
+    field_map = {}
+    for field in class_name._meta.fields:
+        field_map[field.name] = field.verbose_name
+        if  isinstance(field, (ForeignKey, ManyToManyField, OneToOneField)):
+            key = None
+            if field.related_model == Department:
+                key = 'department_list'
+            elif field.related_model == Company:
+                key = 'company_list'
+            elif field.related_model == Team:
+                key = 'team_list'
+            elif field.related_model == CustomUser:
+                key = 'user_list'
+            if key is not None:
+                values = get_dictionary(key)
+            else:
+                values = field.related_model.objects.all().values()
+            if values is not None:
+                data_map[field.name]={}
+                for v in values:
+                    if v.get('id', None) is not None:
+                        field_value = None
+                        if v.get('name', None) is not None:
+                            field_value = v.get('name')
+                        elif v.get('full_name', None) is not None:
+                            field_value = v.get('full_name')
+                        elif v.get('username', None) is not None:
+                            field_value = v.get('username')
+                        elif v.get('code', None) is not None:
+                            field_value = v.get('code')
+                        elif v.get('key', None) is not None:
+                            field_value = v.get('key')
+                        data_map[field.name][f"{v.get('id')}"] = field_value if field_value is not None else v.get('id')
+    return data_map, field_map
+
 def get_audit_history(history, type:str, class_name=None):
 # prepare data map for the FK fields, get data from redis
 # can add more data into redis for mapping
-    data_map = {}
-    if class_name is not None:
-        for field in class_name._meta.get_fields():
-            if isinstance(field, models.ForeignKey):
-                redis_key = ''
-                if field.related_model == Department:
-                    redis_key = 'department_list'
-                if field.related_model == Company:
-                    redis_key = 'department_list'
-                if field.related_model == Team:
-                    redis_key = 'department_list'
-                if field.related_model == CustomUser:
-                    redis_key = 'user_list'
-                if redis_key != '':
-                    values = get_redis_data_json(redis_key)
-                    if values is not None:
-                        for v in values:
-                            if v.get('id', None) is not None:
-                                if v.get('name', None) is not None:
-                                    data_map[field.name] = {v.get('id', None): v.get('name', None)}
-                                elif v.get('full_name', None) is not None:
-                                    data_map[field.name] = {v.get('id', None): v.get('full_name', None)}
-                                elif v.get('username', None) is not None:
-                                    data_map[field.name] = {v.get('id', None): v.get('username', None)}
-                                elif v.get('code', None) is not None:
-                                    data_map[field.name] = {v.get('id', None): v.get('code', None)}
-                                elif v.get('key', None) is not None:
-                                    data_map[field.name] = {v.get('id', None): v.get('key', None)}
+    data_map, field_map = get_audit_field_map(class_name) if class_name is not None else {}
     model_fields = set()
     history_changes = []
     if data_map is not None:
@@ -146,7 +134,8 @@ def get_audit_history(history, type:str, class_name=None):
                 else:
                     change_old = change.old
                     change_new = change.new
-                changes = changes + f"<strong>[{change.field}]</strong>:{change_old} → {change_new} <br/>"
+                field_label = field_map.get(change.field, change.field)
+                changes = changes + f"<strong>[{field_label}]</strong>:{change_old} → {change_new} <br/>"
         if changes != '' or change_type != 'Changed':
             history_changes.append({
                 'change_type': change_type,
@@ -160,31 +149,6 @@ def get_audit_history(history, type:str, class_name=None):
 
 def get_audit_history_by_instance(instance, type:str, class_name=None):
     history = instance.history.all()
-    history_changes = get_audit_history(history, type)
+    history_changes = get_audit_history(history, type, class_name)
     return history_changes
 
-def set_context_base(request, app_name, form_code=None, case_id=None):
-    context = {}
-    mini_app = AppMenu.objects.filter(key=app_name, menu_level=0)
-    if mini_app is None or mini_app.count() != 1:
-        messages.warning(request, "Application is not found")
-        return redirect('app:home')
-    else:
-        mini_app = mini_app.first()
-    context['mini_app'] = mini_app
-    menu = next((m for m in request.menu if m.get('key', '') == app_name), None)
-    context['menu'] = menu
-    if form_code is not None:
-        form = FormTemplate.objects.get(code=form_code, application__key=app_name)
-        if form is None:
-            messages.warning(request, "Form Template is not found")
-            return redirect('app:app_home', app_name)
-        context['form'] = form
-        if case_id is not None:
-            model_class = form.get_model_class()
-            case_instance = model_class.objects.get(pk=case_id)
-            context['case_instance'] = case_instance
-            if case_instance is None:
-                messages.warning(request, "Case is not found")
-                return redirect('app:app_home', app_name)
-    return context

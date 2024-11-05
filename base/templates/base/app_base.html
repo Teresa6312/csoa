@@ -1,36 +1,59 @@
-{% extends "admin/base_site.html" %}
+{% extends "base/base.html" %}
 {% load i18n static %}
 
-{% block title%}
-{% if title is not None %}{{title}} | {%endif%}{{menu.label}} 
-{% endblock%}
 
-{% block extrahead %}{{ block.super }}
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+{% block extrahead %} {{ block.super }}
+    {% if datatables %}
+        <!-- DataTables JS -->
+        <script type="text/javascript" src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+        <!-- DataTables SearchPanes JS -->
+        <script type="text/javascript" src="https://cdn.datatables.net/searchbuilder/1.7.1/js/dataTables.searchBuilder.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/searchpanes/2.2.0/js/dataTables.searchPanes.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
+
+        <!-- DataTables Buttons JS -->
+        <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.flash.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+        <!-- JSZip (required for Excel export) -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    {% endif %}
 {% endblock %}
 
 {% block extrastyle %}
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
-<link rel="stylesheet" type="text/css" href="{% static 'django_tables2/bootstrap.css' %}">
+    {% if django_tables2 %}
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="{% static 'django_tables2/bootstrap.css' %}">
+    {% endif %}
+    {% if datatables %}
+        <!-- DataTables CSS -->
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
+        <!-- DataTables SearchPanes CSS -->
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchbuilder/1.7.1/css/searchBuilder.foundation.min.css">
+        <!-- DataTables Buttons CSS -->
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+    {% endif %}
+    {{ block.super }}
 {% endblock %}
 
 
 {% block left-sidebar %}
 <nav class="sticky w3-container w3-margin w3-border-right" id="nav-sidebar" aria-label="Sidebar" aria-expanded="true">
-    {% for m in menu.subMenu %}
+    {% for m in level_1_menu.sub_menu %}
         <div class="w3-round-xxlarge w3-grey w3-padding w3-margin">
             {% if m.link %}
                 <a href="{{m.link}}">
                     {{m.label}}
                 </a>
-            {% else %}
-                {{m.label}}
             {% endif %}
         </div>
     {% endfor %}
 </nav>
 {% endblock %}
+
 {% block content %}
 {% endblock%}
 

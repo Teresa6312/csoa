@@ -178,3 +178,12 @@ i:hover {
 .inline-group .tabular td.original p {
     height: auto;
 }
+select {
+    height: 32px
+}
+table th {
+    font-size: 12px;
+}
+table td {
+    font-size: 11px;
+}

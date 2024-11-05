@@ -1,24 +1,15 @@
 {% extends "base/app_base.html" %}
 {% load i18n static %}
+{% load custom_tags %}
 {% load tz %}
 
-
-{% block extrahead %}{{ block.super }}
-<script src="/static/DataTables/datatables.min.js"></script>
-<script src="/static/DataTables/datatables.js"></script>
-<script src="/static/js/common.js"></script>
-{% endblock %}
-
-{% block extrastyle %}{{ block.super }}
-<!-- https://cdn.datatables.net/ -->
-<link type="text/css"  href="/static/DataTables/datatables.min.css" rel="stylesheet">
-<link type="text/css"  href="/static/DataTables/datatables.css" rel="stylesheet">
-{% endblock %}
-
 {% block content %}
-<a href="{% url 'app:app_case_workflow' mini_app.key case_instance.form.code case_instance.id %}" target="_blank">
-    <p>View flow</p>
-</a>
+{% if permission__workflow %}
+    <a id="workflow"  href="{% url 'app:app_case_workflow' mini_app.key case_instance.form.code case_instance.id %}" target="_blank" class="w3-xlarge">
+        <p>View flow</p>
+    </a>
+{% endif %}
+
 <div class="w3-row">
     <div class="w3-container w3-half w3-row">
         <div class="w3-large w3-bold w3-padding-small w3-third">
@@ -69,51 +60,62 @@
         </div>
     </div>
 </div>
-
-{% include "jsonForm/form_case_data_block.html" with section_datas=section_datas %}
+{% include "jsonForm_blocks/form_case_data_block.html" with section_datas=section_datas %}
 
 <div class="w3-bar w3-grey w3-margin">
-    <button class="w3-bar-item w3-button" onclick="openTab('Tasks')">Tasks</button>
-    <button class="w3-bar-item w3-button" onclick="openTab('History')">History</button>
-    <button class="w3-bar-item w3-button" onclick="openTab('Document')">Document</button>
+    {% if permission__tasksTab %}
+        <button class="w3-bar-item w3-button" onclick="openTab('tasksTab')">Tasks</button>
+    {% endif %}
+    {% if permission__historyTab %}
+        <button class="w3-bar-item w3-button" onclick="openTab('historyTab')">History</button>
+    {% endif %}
+    {% if permission__documentsTab %}
+        <button class="w3-bar-item w3-button" onclick="openTab('documentsTab')">Document</button>
+    {% endif %}
 </div>
-<div id="Tasks" class="w3-container w3-display-container case_tab">
-    {% include "base/list_block.html" with queryset=task_instances fields=task_fields %}
-    <div class="w3-container">
-        {% for form in pending_task_forms%}
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{form.as_p}}
-                <button type="submit">Submit</button>
-            </form>
-        {% endfor %}
+{% if permission__tasksTab %}
+    <div id="tasksTab" class="w3-container w3-display-container case_tab">
+        {% include "base_blocks/list_block.html" with queryset=task_instances fields=task_fields exportCsv=permission__tasksTab__exportCsv%}
+        <div class="w3-container">
+            {% for form in pending_task_forms%}
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{form.as_p}}
+                    <button type="submit">Submit</button>
+                </form>
+            {% endfor %}
+        </div>
     </div>
+{% endif %}
+{% if permission__documentsTab %}
+<div id="documentsTab" class="w3-container w3-display-container case_tab" style="display:none">
+    {% include "base_blocks/list_block_api_document.html" with file_data_url=file_data_url file_fields=file_fields file_serverSide=0 file_download_url=file_download_url perm_file_exportCsv=permission__documentsTab__exportCsv perm_file_download=permission__documentsTab__download%}
 </div>
-  
-<div id="History" class="w3-container w3-display-container case_tab" style="display:none">
-    {% include "base/list_block_api_audit_history.html" with audit_url=history_data_url audit_fields=history_fields audit_serverSide=0 %}
+{% endif %}
+{% if permission__historyTab %}
+<div id="historyTab" class="w3-container w3-display-container case_tab" style="display:none">
+    {% include "base_blocks/list_block_api_audit_history.html" with audit_url=history_data_url audit_fields=history_fields audit_serverSide=0 audit_exportCsv=permission__historyTab__exportCsv%}
 </div>
-
-<div id="Document" class="w3-container w3-display-container case_tab" style="display:none">
-    {% include "base/list_block_api_document.html" with file_data_url=file_data_url file_fields=file_fields file_serverSide=0 %}
-</div>
+{% endif %}
 
 <script>
     function openTab(name) {
-      var i;
-      var x = document.getElementsByClassName("case_tab");
+      let i;
+      let x = document.getElementsByClassName("case_tab");
       for (i = 0; i < x.length; i++) {
         x[i].style.display = "none";  
       }
-      document.getElementById(name).style.display = "block";  
-      if(name == 'History'){
-        loadAuditData()
+      let element = document.getElementById(name)
+      if (element != null ) {
+        document.getElementById(name).style.display = "block"; 
       }
-      if(name == 'Document'){
-        loaddata()
+      if(name == 'historyTab'){
+        load_audit_data()
+      }
+      if(name == 'documentsTab'){
+        load_file_data()
       }
     }
-    
 </script>
 {% endblock%}
 

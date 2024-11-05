@@ -85,6 +85,10 @@ class CaseAdmin(BaseAuditAdmin):
 	list_filter = ['status', 'is_submited']
 admin.site.register(Case, CaseAdmin)
 
+class CaseDataAdmin(BaseAuditAdmin):
+	list_display = ['id', 'case','form_section']
+admin.site.register(CaseData, CaseDataAdmin)
+
 class TaskInstanceAdmin(BaseAuditAdmin):
 	def case_id(self, obj):
 		case = obj.case_task_instances.first()

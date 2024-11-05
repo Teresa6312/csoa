@@ -1,0 +1,18 @@
+<!-- weightsCustomClearableFileInput.html -->
+<div class="custom-file-input">
+  {% if widget.is_initial %}
+      <span id="{{ widget.attrs.id }}-current" style="text-decoration: none;">
+        {% for d_value in widget.display_value %}
+          <a href="{{ d_value.id }}" download>
+              {{ d_value.name }}
+          </a>&nbsp;
+        {% endfor %}
+      </span>
+      {% if not widget.is_hidden and not widget.attrs.disabled and not widget.required %}
+          <input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}" class="file-clear-checkbox">
+          <label for="{{ widget.checkbox_id }}">{{ widget.clear_checkbox_label }}</label>
+      {% endif %}
+  {% endif %}
+  <input type="file" name="{{ widget.name }}" id="{{ widget.attrs.id }}" {% include "django/forms/widgets/attrs.html" %}>
+</div>
+

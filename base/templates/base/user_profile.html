@@ -1,17 +1,5 @@
-{% extends "admin/base_site.html" %}
+{% extends "base/app_base.html"%}
 {% load i18n static %}
-
-{% block extrahead %}{{ block.super }}
-<script src="/static/DataTables/datatables.min.js"></script>
-<script src="/static/DataTables/datatables.js"></script>
-<script src="/static/js/common.js"></script>
-{% endblock %}
-
-{% block extrastyle %}{{ block.super }}
-<!-- https://cdn.datatables.net/ -->
-<link type="text/css"  href="/static/DataTables/datatables.min.css" rel="stylesheet">
-<link type="text/css"  href="/static/DataTables/datatables.css" rel="stylesheet">
-{% endblock %}
 
 {% block title%}
 {% trans 'User Profile' %}

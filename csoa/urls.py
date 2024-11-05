@@ -14,14 +14,6 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-# from django.contrib import admin
-# from django.urls import path
-
-# urlpatterns = [
-#     path('admin/', admin.site.urls),
-# ]
-
-
 from django.urls import path, include, re_path
 from django.contrib import admin
 from django.apps import apps
@@ -34,7 +26,7 @@ urlpatterns = [
     path('admin/doc/', include('django.contrib.admindocs.urls')),  # Enable admindocs URLs
     path('admin/', admin.site.urls),
     path('', include('base.urls', namespace='app')),
-    path('api/', include('base.urls_api', namespace='app-api')),
+    path('api/', include('base.urls_api', namespace='api')),
     path('forms/', include('jsonForm.urls', namespace='jsonForm')),
     path('user/', include('userManagement.urls', namespace='userManagement')),
     
@@ -51,9 +43,10 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-admin.site.site_header = 'CS Supplementary System'
-admin.site.site_title = 'CS Supplementary System'
-admin.site.index_title = 'Welcome to CS Supplementary System'
+admin.site.site_header = settings.SITE_NAME
+admin.site.site_title = settings.SITE_NAME
+admin.site.index_title = f'Welcome to CS {settings.SITE_NAME}'
+
 # admin.site.sit_url = None
 
 # # Practical Use Case:

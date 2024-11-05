@@ -14,6 +14,15 @@ from django.utils.functional import Promise  # Import the Promise class for from
 import re
 import logging
 from django.db.models import Q
+from django.shortcuts import redirect
+from django.http import JsonResponse
+import mimetypes
+from django.http import HttpResponseRedirect
+from django.forms.models import model_to_dict
+from django.shortcuts import get_object_or_404
+from functools import reduce
+from django.core.paginator import Paginator
+from django.http import Http404
 
 logger = logging.getLogger('django')
 
@@ -28,7 +37,9 @@ class CustomJSONEncoder(json.JSONEncoder):
         if isinstance(obj, Decimal):
             return float(obj)
         if isinstance(obj, Promise):
-            return str(obj) 
+            return str(obj)
+        if obj is None:
+            return ''
         return super().default(obj)
     
 def save_form_data_to_json(form):
@@ -214,3 +225,91 @@ def extract_datatables_search_builder_parameters(post_data, search_builder_logic
         field_name = post_data.get(f'searchBuilder[criteria][{i}][origData]', None)
 
     return q_objects
+
+def set_datatables_response(request, queryset, fields: list,search_keys: list):
+    draw = int(request.POST.get('draw', 1))
+    start = int(request.POST.get('start', 0))
+    length = int(request.POST.get('length', 10))
+
+    search_value = request.POST.get('search[value]', None)
+    search_builder_logic = request.POST.get('searchBuilder[logic]', None)
+
+    # 处理过滤
+    if search_value:
+        conditions = reduce(lambda x, y: x | Q(**{f'{y}__icontains': search_value}), search_keys, Q())
+        queryset = queryset.filter(conditions)
+    if search_builder_logic is not None:
+        q_objects = extract_datatables_search_builder_parameters(request.POST, search_builder_logic)
+        queryset = queryset.filter(q_objects)
+    
+    # 处理排序
+    order_column = request.POST.get('order[0][column]', None)
+    order_by = None
+    if order_column is not None:
+        order_column_name = fields[int(order_column)]
+        order_direction = request.POST.get('order[0][dir]', 'asc')
+        order_by = order_column_name if order_direction == 'asc' else f"-{order_column_name}"
+        queryset = queryset.order_by(order_by)
+
+    logger.debug(queryset.query)
+    
+    # 处理分页
+    paginator = Paginator(queryset.values(*fields), request.POST.get('length', 10))
+    page_number = start // length + 1
+    page = paginator.get_page(page_number)
+
+    data = json.dumps(list(page), cls=CustomJSONEncoder)
+
+    return {
+        "recordsTotal": queryset.count(),
+        "recordsFiltered": paginator.count,
+        'data': json.loads(data),
+    }
+
+
+
+def no_permission_redirect(request, path=None, message=None):
+    if message is None and request.path.startswith('/api'):
+        return JsonResponse({"message_type": "error", "message": "No Permission", "data": []}, status=403)
+    elif message is None:
+        message = f"You do not have permission to view this page({request.path})."
+    messages.error(request, f"{message}")
+    if path is not None:
+        return redirect(path)
+    referer = request.META.get('HTTP_REFERER')  # Previous URL (if exists)
+    if referer:
+        return HttpResponseRedirect(referer)
+    else:
+        return redirect('app:home')
+    
+def get_model_class(backend_app_label, backend_app_model):
+    if backend_app_label and backend_app_model:
+        model_class = apps.get_model(backend_app_label, backend_app_model)
+        return model_class
+    else:
+        raise ValueError(f"backend_app_label and backend_app_model is missing in Form")
+    
+def get_object_or_redirect(model, *args, message="Data object not found.", **kwargs):
+    try:
+        return get_object_or_404(model, *args, **kwargs)
+    except Http404 as e:
+        logger.error(e)
+        raise ValueError(message)
+    except Exception as e:
+        logger.error(e)
+        raise ValueError("System Error")
+
+def method_model_to_dict(model_object):
+    # Using model_to_dict and json.dumps
+    workflow_dict = model_to_dict(model_object)
+    return json.dumps(workflow_dict)
+
+def get_menu_key_in_list(sub_menu: list, parent_key=None):
+    result = []
+    for menu in sub_menu:
+        key = f"{parent_key}__{menu.get('key')}"  if parent_key is not None else menu.get('key')
+        result.append(key)
+        new_sub_menu = menu.get('sub_menu', [])
+        if len(menu.get('sub_menu', []))>0:
+            result += get_menu_key_in_list(new_sub_menu, key)
+    return result

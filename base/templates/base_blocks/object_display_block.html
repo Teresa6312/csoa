@@ -1,0 +1,36 @@
+{% block content %}
+<div id="dynamic-div" class="w3-row">
+</div>
+    <script>
+        // The data passed from Django view
+        const object_data = {{object_data|safe}}
+        const object_fields = {{object_fields|safe}}
+
+        // Function to create Display Block
+        function createDisplayBlock() {
+            const parent_div = document.getElementById('dynamic-div');
+            for (const [key, value] of Object.entries(object_fields)) {
+                const field_block = document.createElement('div');
+                field_block.classList="w3-container w3-half w3-row"
+                const field_lable = document.createElement('div');
+                field_lable.classList = "w3-large w3-bold w3-padding-small w3-third"
+                const field_value = document.createElement('div');
+                field_value.classList = "w3-rest w3-padding-small w3-border"
+                if (object_data[key] !=null && object_data[key]!= '' && object_data[key] !== undefined){
+                    field_value.textContent = object_data[key]
+                } else{
+                    field_value.textContent = '--';
+                }
+                field_lable.textContent = value;
+                field_block.append(field_lable)
+                field_block.append(field_value)
+                parent_div.append(field_block)
+            }
+        };
+    
+        $(document).ready(
+            function () {
+                createDisplayBlock();
+        });
+    </script>
+{% endblock %}

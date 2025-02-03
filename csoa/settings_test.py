@@ -42,19 +42,15 @@ REDIS_DB = 0
 CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
 CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
 
-# Redis Key format "%s:%s:%s" % (key_prefix, version, key)
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',  # Redis 服务器地址
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-        'TIMEOUT': 3600,  # Default timeout in seconds (60 minutes),
-        # 'KEY_PREFIX': 'global'  # Optional prefix to avoid namespacing issues 
+        }
     }
 }
-
 
 if DEBUG == False:
     MIDDLEWARE.append('base.middleware.CustomErrorHandlingMiddleware') # middleware to handle error pages 

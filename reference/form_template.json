@@ -1,0 +1,77 @@
+{
+    "form_title": "调查问卷",
+    "elements": [
+      {
+        "type": "text",
+        "label": "姓名",
+        "name": "name",
+        "required": true
+      },
+      {
+        "type": "select",
+        "label": "国家",
+        "name": "country",
+        "options": [
+          {"value": "china", "label": "中国"},
+          {"value": "usa", "label": "美国"}
+        ],
+        "related_fields": ["province"]
+      },
+      {
+        "type": "select",
+        "label": "省份",
+        "name": "province",
+        "options": {
+          "china": [
+            {"value": "beijing", "label": "北京"},
+            {"value": "shanghai", "label": "上海"}
+          ],
+          "usa": [
+            {"value": "california", "label": "加州"},
+            {"value": "newyork", "label": "纽约"}
+          ]
+        },
+        "dependency": "country"
+      },
+      {
+        "type": "radio",
+        "label": "性别",
+        "name": "gender",
+        "options": [
+          {"value": "male", "label": "男"},
+          {"value": "female", "label": "女"}
+        ],
+        "related_fields": ["age"]
+      },
+      {
+        "type": "number",
+        "label": "年龄",
+        "name": "age",
+        "validation": {
+          "male": {"min": 18, "max": 30},
+          "female": {"min": 20, "max": 35}
+        },
+        "dependency": "gender"
+      },
+      {
+        "type": "text",
+        "label": "问题1",
+        "name": "question1",
+        "show_if": {
+          "field": "age",
+          "operator": ">=",
+          "value": 25
+        }
+      },
+      {
+        "type": "text",
+        "label": "问题2",
+        "name": "question2",
+        "show_if": {
+          "field": "question1",
+          "operator": "contains",
+          "value": "yes"
+        }
+      }
+    ]
+  }

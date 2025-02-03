@@ -8,35 +8,20 @@ from base.validators import get_validator
 from django.core.cache import cache
 from base.cache import global_class_cache_decorator
 from base.util import get_object_or_redirect
+from base import constants
 
 TITLE_CHOICE = (
 ('Mr.', 'Mr.'),
-('Ms.', 'Miss'),
+('Ms.', 'Ms.'),
 ('Mrs.', 'Mrs.'),
 ('Mx.', 'Mx.'),
 )
-
-# APP_CHOICE = ( (a['key'], a['label']) for a in APP_LIST )
 
 CONTROL_TYPE_CHOICE = (
     ('app', 'App'),
     ('company', 'Company'),
     ('department', 'Department'),
     ('team', 'Team')
-)
-
-GROUP_TYPE_CHOICE = (
-    (1, '[App Name] role'),
-    (2, 'Normal Team role'),
-    (3, 'Normal Department role'),
-    (4, 'Normal Company role'),
-    (5, 'Team Manager role'),
-    (6, 'Department Manager role'),
-    (7, 'Company Manager role'),
-    (8, 'Department Senior role'),
-    (9, 'App Team role'),
-    (10, 'App Department role'),
-    (12, 'App Company role')
 )
 
 class Company(BaseAuditModel):
@@ -279,7 +264,7 @@ class AppMenu(BaseAuditModel):
 # Team Manager
 
 class CustomGroup(Group, BaseAuditModel):
-    group_type = models.PositiveSmallIntegerField(choices=GROUP_TYPE_CHOICE, blank=True, null=True, help_text='''
+    group_type = models.PositiveSmallIntegerField(choices=constants.GROUP_TYPE_CHOICE, blank=True, null=True, help_text='''
                                                   If group type is empty, which means this is a basic group and not a role for assigning to business user\n
                                                     # [App Name] role only apply for specific application, so apps.count = 1, and this role is applicatable to which team/department/company that the user has permission to
                                                     # Normal [team/department/company] role is applicable for selected application, and this role is applicatable to which team/department/company that the user belongs to
@@ -296,31 +281,32 @@ class CustomGroup(Group, BaseAuditModel):
         return '[%s] %s'%(self.group_type, self.name)
     @classmethod
     def get_team_group_type(cls):
-        return [2,5,9]
+        return constants.ROLE_TEAM_GROUP_TYPE
     @classmethod
     def get_department_group_type(cls):
-        return [3,6,10,8]
+        return constants.ROLE_DEPARTMENT_GROUP_TYPE
     @classmethod
     def get_company_group_type(cls):
-        return [4,7,12]
+        return constants.ROLE_COMPANY_GROUP_TYPE
     @classmethod
     def get_belongs_group_type(cls):
-        return [2,3,4,5,6,7,8]
+        return constants.ROLE_BELONGS_GROUP_TYPE
     @classmethod
     def get_perms_group_type(cls):
-        return [9,10, 12]
+        return constants.ROLE_PERMS_GROUP_TYPE
     @classmethod
     def get_team_belongs_group_type(cls):
-        return [2,5]
+        return constants.ROLE_TEAM_BELONGS_GROUP_TYPE
     @classmethod
     def get_department_belongs_group_type(cls):
-        return [3,6,8]
+        return constants.ROLE_DEPARTMENT_BELONGS_GROUP_TYPE
     @classmethod
     def get_company_belongs_group_type(cls):
-        return [4,7]
+        return constants.ROLE_COMPANY_BELONGS_GROUP_TYPE
     @classmethod
     def get_manager_group_type(cls):
-        return [5,6,7,8]
+        return constants.ROLE_MANAGER_GROUP_TYPE
+
 
 # company/department/team is for data control, not access control, like KYC and CMT, data owns by different depertment or teams
 # if other company/department/team need to see the data or edit the data, he/she should have the data permission which is controled by Permission
@@ -373,7 +359,7 @@ class Permission(BaseAuditModel):
     @classmethod
     def get_assign_to_role(cls, app, role, case):
         filter = Q(app = app, role=role)
-        if role.name == 'Case Owner':
+        if role.name == constants.ROLE_CASE_OWNER:
             filter = Q(app = app, user_permissions=case.created_by, role__menus__key=f'createCase{case.form.code}')
         elif app.control_type != 'app' and role.group_type in CustomGroup.get_team_group_type():
             filter &= Q(team = case.case_team)

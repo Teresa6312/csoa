@@ -168,7 +168,7 @@ class AppMenuInlineCreateForm(forms.ModelForm):
         elif is_search_cases:
             instance.link = f'/app/{self.parent_instance.key}/cases/search'
         elif is_my_cases:
-            instance.key = 'my-cases'
+            instance.key = 'my_cases'
             instance.link = f'/app/{self.parent_instance.key}/my-cases'
 
         if commit:

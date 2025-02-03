@@ -1,0 +1,55 @@
+{
+    "operator": "AND",
+    "conditions": [
+      {
+        "field_name": "username",
+        "comparison_operator": "startswith",
+        "compare_value": "John"
+      },
+      {
+        "field_name": "email",
+        "comparison_operator": "icontains",
+        "compare_value": "example.com"
+      },
+      {
+        "field_name": "age",
+        "comparison_operator": "gt",
+        "compare_value": 18
+      },
+      {
+        "field_name": "is_active",
+        "comparison_operator": "exact",
+        "compare_value": true
+      },
+      {
+        "field_name": "user_role",
+        "comparison_operator": "in",
+        "compare_value": ["AVP", "VP"]
+      },
+      {
+        "field_name": "created_at",
+        "comparison_operator": "range",
+        "compare_value": ["2023-01-01", "2023-12-31"]
+      },
+      {
+        "field_name": "description",
+        "comparison_operator": "contains",
+        "compare_value": "Django"
+      },
+      {
+          "field_name": "phone_number",
+          "comparison_operator": "regex",
+          "compare_value": "^1[3-9]\\d{9}$"
+      },
+      {
+          "field_name": "address",
+          "comparison_operator": "iregex",
+          "compare_value": ".*北京.*"
+      },
+      {
+          "field_name": "deleted_at",
+          "comparison_operator": "isnull",
+          "compare_value": true
+      }
+    ]
+  }

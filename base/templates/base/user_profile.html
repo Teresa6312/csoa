@@ -7,7 +7,7 @@
 
 {% block content %}
 <div class="w3-container w3-margin">
-    {% include "base/object_display_block.html" with object_data=profile object_fields=fields %}
+    {% include "base_blocks/object_display_block.html" with object_data=profile object_fields=fields %}
 </div>
 <div class="w3-container w3-margin w3-row">
     <div class="w3-container w3-half w3-row">
@@ -21,7 +21,7 @@
 </div>
 
 <div class="w3-container w3-margin">
-    {% include "base/list_block.html" with queryset=permission fields=permission_fields %}
+    {% include "base_blocks/list_block.html" with queryset=permission fields=permission_fields %}
 </div>
 {% endblock%}
 

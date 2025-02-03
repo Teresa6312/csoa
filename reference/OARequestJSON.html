@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dynamic Form</title>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<div id="form-container"></div>
+
+<script>
+const data = {
+"form_title": "调查问卷",
+"elements": [
+    {
+    "type": "text",
+    "label": "姓名",
+    "name": "name",
+    "required": true
+    },
+    {
+    "type": "select",
+    "label": "国家",
+    "name": "country",
+    "options": [
+        {"value": "china", "label": "中国"},
+        {"value": "usa", "label": "美国"}
+    ],
+    "related_fields": ["province"]
+    },
+    {
+    "type": "select",
+    "label": "省份",
+    "name": "province",
+    "options": {
+        "china": [
+        {"value": "beijing", "label": "北京"},
+        {"value": "shanghai", "label": "上海"}
+        ],
+        "usa": [
+        {"value": "california", "label": "加州"},
+        {"value": "newyork", "label": "纽约"}
+        ]
+    },
+    "dependency": "country"
+    },
+    {
+    "type": "radio",
+    "label": "性别",
+    "name": "gender",
+    "options": [
+        {"value": "male", "label": "男"},
+        {"value": "female", "label": "女"}
+    ],
+    "related_fields": ["age"]
+    },
+    {
+    "type": "number",
+    "label": "年龄",
+    "name": "age",
+    "validation": {
+        "male": {"min": 18, "max": 30},
+        "female": {"min": 20, "max": 35}
+    },
+    "dependency": "gender"
+    },
+    {
+    "type": "text",
+    "label": "问题1",
+    "name": "question1",
+    "show_if": {
+        "field": "age",
+        "operator": ">=",
+        "value": 25
+    }
+    },
+    {
+    "type": "text",
+    "label": "问题2",
+    "name": "question2",
+    "show_if": {
+        "field": "question1",
+        "operator": "contains",
+        "value": "yes"
+    }
+    }
+]
+}
+
+$(document).ready(function() {
+    const formContainer = $("#form-container");
+    const formTitle = $("<h2>").text(data.form_title);
+    formContainer.append(formTitle);
+
+    data.elements.forEach(element => {
+      const formGroup = $("<div>");
+      const label = $("<label>").text(element.label);
+      formGroup.append(label);
+
+      let input;
+      switch (element.type) {
+        case "text":
+        case "number":
+          input = $("<input>").attr("type", element.type).attr("name", element.name);
+          break;
+        case "select":
+          input = $("<select>").attr("name", element.name);
+          if (Array.isArray(element.options)) {
+            element.options.forEach(option => {
+              const optionElement = $("<option>").attr("value", option.value).text(option.label);
+              input.append(optionElement);
+            });
+          }
+          break;
+        case "radio":
+          element.options.forEach(option => {
+            const radioLabel = $("<label>").text(option.label);
+            const radioInput = $("<input>").attr("type", "radio").attr("name", element.name).attr("value", option.value);
+            radioLabel.prepend(radioInput);
+            formGroup.append(radioLabel);
+          });
+          break;
+      }
+
+      formGroup.append(input); // Append FIRST
+      formContainer.append(formGroup);
+
+      if (element.required && input) {
+        input.attr("required", true);
+      }
+
+      // Event Delegation for Related Fields and Dependency
+      $(document).on("change", "[name=" + element.name + "]", function() {
+        const changedElement = $(this);
+        const selectedValue = changedElement.val();
+
+        if (element.related_fields) {
+          element.related_fields.forEach(relatedField => {
+            const relatedElement = $("[name=" + relatedField + "]");
+
+            if (element.type === "select" && relatedElement.is("select")) {
+              relatedElement.empty();
+              const options = element.options && element.options[selectedValue]; // Check if options exists
+              if (options) {
+                options.forEach(option => {
+                  const optionElement = $("<option>").attr("value", option.value).text(option.label);
+                  relatedElement.append(optionElement);
+                });
+              }
+            } else if (element.type === "radio" && relatedElement.is("input[type=number]")) {
+              const validation = element.validation && element.validation[selectedValue];
+              if (validation) {
+                relatedElement.attr("min", validation.min).attr("max", validation.max);
+              } else {
+                relatedElement.removeAttr("min").removeAttr("max"); // Or set default min/max
+              }
+            }
+          });
+        }
+
+        if (element.dependency) {
+          const dependentElement = $("[name=" + element.dependency + "]");
+          if (element.type === "select" && dependentElement.is("select")) {
+            input.empty();
+            const options = element.options && element.options[selectedValue]; // Check if options exists
+            if (options) {
+              options.forEach(option => {
+                const optionElement = $("<option>").attr("value", option.value).text(option.label);
+                input.append(optionElement);
+              });
+            }
+          } else if (element.type === "number" && dependentElement.is("input[type=radio]")) {
+            const validation = element.validation && element.validation[selectedValue];
+            if (validation) {
+              input.attr("min", validation.min).attr("max", validation.max);
+            } else {
+              input.removeAttr("min").removeAttr("max"); // Or set default min/max
+            }
+          }
+        }
+
+        // Handle conditional display (show_if)
+        if (element.show_if) {
+          const conditionField = $("[name=" + element.show_if.field + "]");
+          const value = conditionField.val();
+          const operator = element.show_if.operator;
+          const conditionValue = element.show_if.value;
+          let show = false;
+          switch (operator) {
+            case "==": show = value == conditionValue; break;
+            case "!=": show = value != conditionValue; break;
+            case ">=": show = value >= conditionValue; break;
+            case "<=": show = value <= conditionValue; break;
+            case ">": show = value > conditionValue; break;
+            case "<": show = value < conditionValue; break;
+            case "contains": show = value && value.includes(conditionValue); break; // Handle null/undefined
+          }
+          if (show) {
+            formGroup.show();
+          } else {
+            formGroup.hide();
+          }
+        }
+      }); // End of event delegation handler
+
+      // Initial triggers (after element is in DOM and event handlers are attached)
+      if (element.dependency) {
+        const dependencyField = $("[name=" + element.dependency + "]");
+        if (dependencyField.length && input) {
+          dependencyField.trigger("change");
+        }
+      }
+      if (element.related_fields && element.type === "select") {
+        if (input) {
+          input.trigger("change");
+        }
+      }
+
+
+    }); // End of forEach element
+}); // End of document ready
+</script>
+
+</body>
+</html>

@@ -54,8 +54,8 @@ def create_dynamic_case_table_class(class_name, column_headers=None, default_fie
 class CaseFilter(django_filters.FilterSet):
     form = django_filters.ModelChoiceFilter(field_name='form', queryset=FormTemplate.objects.all(), required=True)
     case_data = django_filters.CharFilter(field_name='case_data_case__section_data', lookup_expr='icontains')
-    case_team = django_filters.ChoiceFilter(choices= get_select_choices_ids('team_list'), field_name='case_team')
-    case_department = django_filters.ChoiceFilter(choices= get_select_choices_ids('department_list'), field_name='case_department')
+    case_team = django_filters.ChoiceFilter(choices= [], field_name='case_team')
+    case_department = django_filters.ChoiceFilter(choices= [], field_name='case_department')
     created_at_after = django_filters.DateFilter(field_name='created_at', lookup_expr='gte')
     created_at_before = django_filters.DateFilter(field_name='created_at', lookup_expr='lte')
 
@@ -63,20 +63,29 @@ class CaseFilter(django_filters.FilterSet):
         model = Case
         fields = ["form", "case_data","case_department","case_team", 'created_at_after', 'created_at_before']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['case_team'].choices = get_select_choices_ids('team_list')
+        self.fields['case_department'].choices = get_select_choices_ids('department_list')
 
 def create_dynamic_case_data_filter(data_class):
     class CaseDataFilter(django_filters.FilterSet):
         form = django_filters.ModelChoiceFilter(field_name='case__form', queryset=FormTemplate.objects.all())
         case_data = django_filters.CharFilter(field_name='section_data', lookup_expr='icontains')
         case_status = django_filters.CharFilter(field_name='case__status', lookup_expr='icontains')
-        case_team = django_filters.ChoiceFilter(choices= get_select_choices_ids('team_list'), field_name='case__case_team')
-        case_department = django_filters.ChoiceFilter(choices= get_select_choices_ids('department_list'), field_name='case__case_department')
+        case_team = django_filters.ChoiceFilter(choices= [], field_name='case__case_team')
+        case_department = django_filters.ChoiceFilter(choices= [], field_name='case__case_department')
         created_at_after = django_filters.DateFilter(field_name='case__created_at', lookup_expr='gte')
         created_at_before = django_filters.DateFilter(field_name='case__created_at', lookup_expr='lte')
     
         class Meta:
             model = data_class
             fields = ["form", "case_status","case_data","case_department","case_team", 'created_at_after', 'created_at_before',]
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['case_team'].choices = get_select_choices_ids('team_list')
+            self.fields['case_department'].choices = get_select_choices_ids('department_list')
 
     return CaseDataFilter
 

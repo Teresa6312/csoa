@@ -20,6 +20,12 @@ class MenuMiddleware:
 
 	def __call__(self, request):
 		
+		# only admin has permission to /admin/ control by Django by default
+		# all users have accesses to /accounts/ pages
+		# all users have access to home page
+		if request.path.startswith('/accounts/') or (request.path.startswith('/admin') and request.user.is_superuser and request.user.is_staff) or request.path in ['/favicon.ico']:
+			response = self.get_response(request)
+			return response
 		app_tree, menu_tree = self.get_app_tree_for_user(request)
 		request.app_tree = app_tree # app in tree that user has permissions with
 		request.menu_tree = menu_tree # app in tree that user has permissions with
@@ -49,7 +55,7 @@ class MenuMiddleware:
 		# only admin has permission to /admin/ control by Django by default
 		# all users have accesses to /accounts/ pages
 		# all users have access to home page
-		if request.path.startswith('/accounts/') or (request.path.startswith('/admin/') and request.user.is_superuser and request.user.is_staff) or request.path in ['', '/', '/favicon.ico'] or current_page_menu != {}:
+		if  current_page_menu != {} or request.path in ['/', '']:
 			response = self.get_response(request)
 			return response
 		else:
@@ -63,7 +69,7 @@ class MenuMiddleware:
 				return redirect('/')
 
 	def get_app_tree_for_user(self, request):
-		if request.path.startswith('/admin/') or not request.user.is_authenticated:
+		if request.path.startswith('/admin') or not request.user.is_authenticated:
 			return {}, {}
 		if request.user.is_superuser:
 			apps = AppMenu.get_app_tree()

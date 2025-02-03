@@ -6,8 +6,11 @@ db.sqlite3
 __pycache__/
 *.py[cod]
 *$py.class
-env/
+env12/
 logs/
 *.log
 *.log.*
 files/
+README-old
+.vscode/
+testModel/

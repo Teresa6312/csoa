@@ -66,20 +66,27 @@ def get_case_details(request, context, app_name, form_code, case_id):
 		return redirect('app:app_home', app_name)
 	task_fields = TaskInstance.selected_fields_info() # need to bre replace with a config table to maintains the field list like model dict
 	task_fields_names = list(task_fields.keys())
-	tasks_queryset = case_instance.task_instances.all().order_by('-updated_at')
-	context['task_instances'] = json.dumps(list(tasks_queryset.values(*task_fields_names)), cls=CustomJSONEncoder)
 	context['task_fields'] = task_fields
+
+	if case_instance.workflow_instance is not None:
+		tasks_queryset = case_instance.workflow_instance.task_instance_workflow_instance.all()
+		context['task_instances'] = json.dumps(list(tasks_queryset.values(*task_fields_names).order_by('-created_at', '-updated_at')), cls=CustomJSONEncoder)
+	else:
+		context['task_instances'] = []
+
+		
 	section_datas = case_instance.case_data_case.all().values('form_section__json_template','section_data').order_by('form_section__index')
 	context['section_datas'] =  json.dumps(list(section_datas), cls=CustomJSONEncoder)
+	
+	# role_unit setup was not correct, it includes the permissions (userManagement.CustomGroup) that has permission tho this page
+	# # role_unit includes the permissions (userManagement.CustomGroup) that the user has in this page 
+	# role_unit = request.current_page_menu.get('role_unit', [])
+	# role_unit_ids = [ r.get('permission_role__id') for r in role_unit ]
 
-	# role_unit includes the permissions (userManagement.CustomGroup) that the user has in this page
-	role_unit = request.current_page_menu.get('role_unit', [])
-	role_unit_ids = [ r.get('permission_role__id') for r in role_unit ]
-
-	if request.method == 'POST':
+	if case_instance.workflow_instance is not None and request.method == 'POST':
 		pending_task_forms = [
 			TaskInstanceForm(request.POST, request.FILES, request=request, instance=ti, prefix=f"pending_task_{ti.id}") 
-			for ti in tasks_queryset.filter(Q(is_active=True)&(Q(assign_to__id__in=role_unit_ids)|Q(is_active=request.user.is_superuser)))
+			for ti in tasks_queryset.filter(Q(is_active=True)&(Q(assign_to__in=request.user.permissions.all())|Q(is_active=request.user.is_superuser)))
 			]
 		forms_is_valid = True
 		for task_form in pending_task_forms:
@@ -96,15 +103,15 @@ def get_case_details(request, context, app_name, form_code, case_id):
 						task = TaskInstance.objects.get(id = t.instance.id)
 						task.is_active = True
 						task.save()
-						logger.error(e)
+						logger.debug(e)
 						messages.error(request, e)
 			return redirect('app:app_case_details', app_name, form_code, case_id)
 		else:
 			context['pending_task_forms'] = pending_task_forms
-	else:
+	elif case_instance.workflow_instance is not None:
 		context['pending_task_forms'] = [ 
 			TaskInstanceForm(request=request, instance=ti, prefix=f"pending_task_{ti.id}") 
-			for ti in tasks_queryset.filter(Q(is_active=True)&(Q(assign_to__id__in=role_unit_ids)|Q(is_active=request.user.is_superuser)))
+			for ti in tasks_queryset.filter(Q(is_active=True)&(Q(assign_to__in=request.user.permissions.all())|Q(is_active=request.user.is_superuser)))
 			]
 # audit history setting
 # path('app/<str:app_name>/cases/search/<str:form_code>/details/history/<int:case_id>##', request_decorator(get_case_details_history_json), name='app_case_details_history'), # app:app_case_details

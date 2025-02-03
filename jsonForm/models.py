@@ -11,6 +11,8 @@ from base.validators import get_validator
 from base.cache import global_class_cache_decorator, global_instance_cache_decorator
 from base.util import get_object_or_redirect
 
+from base.constants import TASK_TYPE_CHOICES, TASK_TYPE_AUTO ,CASE_INITIATED, CASE_COMPLETED
+
 # Create your models here.
 class FormTemplate(BaseAuditModel):
     code = models.CharField(max_length=15, unique=True, validators=[get_validator('no_space_str_w_-')])
@@ -401,7 +403,8 @@ class Task(BaseAuditModel):
     assign_to = models.ManyToManyField (Permission, related_name='task_assign_to', blank=True)
     assign_to_role  = models.ForeignKey (CustomGroup, related_name='task_assign_to_role', blank=True, null=True, on_delete=models.CASCADE)
     assign_to_user  = models.ForeignKey (CustomUser, related_name='task_assign_to_user', blank=True, null=True, on_delete=models.CASCADE, help_text="not in used")
-    index = models.PositiveSmallIntegerField(default=0, help_text="task order index start from 0")
+    index = models.PositiveSmallIntegerField(default=1, help_text="task order index start from 0, others default to 1")
+    task_type = models.CharField(max_length=31, choices=TASK_TYPE_CHOICES, default=TASK_TYPE_AUTO)
 
     class Meta:
         constraints = [
@@ -412,13 +415,19 @@ class Task(BaseAuditModel):
     def __str__(self):
         return f'[{self.workflow}({self.index})] {self.name}'
 
+    def clean(self): # 在model的clean方法中调用验证器
+        if self.index == 0 and self.task_type == 'Manual':
+            raise ValidationError(
+                        f'Manual Craete Task should not be the first task in the workflow'
+                    )
+        
 class DecisionPoint(BaseAuditModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     task = models.ForeignKey(Task, related_name='decision_points_task', on_delete=models.CASCADE)
     decision = models.CharField(max_length=255)
     next_task = models.ForeignKey(Task, related_name='decision_points_next_task', on_delete=models.CASCADE, null=True, blank=True)
     priority = models.PositiveSmallIntegerField(default=1, help_text="decision priority to determine the next task, 1 is the first priority. It is usefull if the task was assigned to multiple decision makers, if one rejected the case, and the whold case should be cancelled, then reject should be the highest priority")
-
+    condition = models.JSONField(blank=True, null=True, help_text='JSON-encoded string representing the condition for this decision point. Find the condition format in the  folder.')
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['task', 'decision'], name='unique  decision point task&decision'),
@@ -436,7 +445,7 @@ class TaskInstance(BaseAuditModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workflow_instance = models.ForeignKey(WorkflowInstance, related_name='task_instance_workflow_instance', on_delete=models.CASCADE, blank=True, null=True)
     task = models.ForeignKey(Task, related_name='task_instance_task', on_delete=models.CASCADE)
-    assign_to=models.ForeignKey(Permission, related_name='task_instance_assign_to', on_delete=models.CASCADE)
+    assign_to=models.ForeignKey(Permission, related_name='task_instance_assign_to', on_delete=models.CASCADE, blank=True, null=True) #assign_to can be null for auto task
     assign_to_user = models.ForeignKey(CustomUser, on_delete=models.PROTECT,related_name='task_instance_assign_to_user', blank=True, null=True)
     decision_point = models.ForeignKey(DecisionPoint, related_name='task_instance_decision_point', on_delete=models.CASCADE, blank=True, null=True)
     comment = models.CharField(max_length=511, blank=True, null=True)
@@ -448,10 +457,20 @@ class TaskInstance(BaseAuditModel):
 
     @classmethod
     def selected_fields_info(cls):
-        fields = ['id', 'workflow_instance__workflow__name', 'task__name', 'assign_to__role__name', 'assign_to__company__full_name', 'assign_to__department__full_name', 'assign_to__team__full_name', 'assign_to_user__username', 'decision_point__decision', 'comment', 'created_at', 'updated_at']  # List of fields you want to include
+        fields = ['id', 'workflow_instance__workflow__name', 'task__name', 'assign_to__role__name', 'assign_to__company__full_name', 'assign_to__department__full_name', 'assign_to__team__full_name', 'assign_to_user__username', 'decision_point__decision', 'comment', 'created_at', 'updated_at', 'is_active']  # List of fields you want to include
         field_info = TaskInstance.get_selected_fields_info(fields)
         return field_info
-    
+        
+    def clean(self): # 在model的clean方法中调用验证器
+        if not self.assign_to and self.task.task_type != constants.TASK_TYPE_AUTO:
+            raise ValidationError(
+                        f'assign_to is required for task type {self.task.task_type}'
+                    )
+        if self.is_active == False and self.decision_point is None:
+            raise ValidationError(
+                        f'Inactive task should have decision point'
+                    )
+
 class Case(BaseAuditModel):
     form = models.ForeignKey(FormTemplate, on_delete=models.PROTECT,related_name='case_form')
     is_submited = models.BooleanField(default=False)
@@ -466,35 +485,66 @@ class Case(BaseAuditModel):
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     # Draft/Initial -> task name -> Compleled/Cancelled
-    status = models.CharField(max_length=255, default='Initial')
+    status = models.CharField(max_length=255, default=CASE_INITIATED)
 
-    @property
-    def get_next_task(self):
-        decision_point_priority = None
-        next_task = None
-        for t in self.task_instances.get(is_active=True):
-            if t.decision_point is None:
-                return None
-            else:
-                if decision_point_priority is None:
-                    next_task = t.decision_point.next_task
-                else:
-                    if decision_point_priority > t.decision_point.priority:
-                       decision_point_priority = t.decision_point.priority
-                       next_task = t.decision_point.next_task
-        return next_task
+    # @property
+    # def get_next_task(self):
+    #     decision_point_priority = None
+    #     next_task = None
+    #     for t in self.task_instances.get(is_active=True):
+    #         if t.decision_point is None:
+    #             return None
+    #         elif t.decision_point.condition == 'Auto':
+    #             if decision_point_priority is None:
+    #                 next_task = t.decision_point.next_task
+    #             else:
+    #                 if decision_point_priority > t.decision_point.priority:
+    #                    decision_point_priority = t.decision_point.priority
+    #                    next_task = t.decision_point.next_task
+    #         elif t.decision_point.condition == 'Manual':
+    #             return None
+    #         # elif t.decision_point.condition == 'Condition': This is not implemented yet
+    #         else:
+    #             return None
+    #     return next_task
 
-    @property
-    def is_completed(self):
-        for t in self.task_instances.get(is_active=True):
-            if t.decision_point is None:
-                return False
-        return True
+    # @property
+    # def is_completed(self):
+    #     for t in self.task_instances.get(is_active=True):
+    #         if t.decision_point is None:
+    #             return False
+    #     return True
+
     @classmethod
     def selected_fields_info(cls):
         fields = ["id", "form__code", "is_submited","case_department__full_name", "case_team__full_name", "created_by__username", "updated_by__username", "created_at", "updated_at", "status"]  # List of fields you want to include
         field_info = Case.get_selected_fields_info(fields)
         return field_info
+    
+    def get_case_data_in_json(self):
+        sections = self.case_data_case.all()
+        data = {}
+        for instance in sections:
+            try:
+                # Safely load JSON data.  Handles cases where the JSONField might be None or contain invalid JSON
+                instance_data = instance.section_data 
+                if instance_data is None:
+                    continue  # Skip if the JSONField is None
+                if isinstance(instance_data, str): # Check if it's a string (older Django versions might store JSON as strings)
+                    instance_data = json.loads(instance_data)
+                if isinstance(instance_data, dict): # Make sure it's a dictionary before merging
+                    data.update(instance_data)
+                else:
+                    raise ValidationError(f"Warning: JSONField data for instance {instance.pk} is not a dictionary. Skipping.")
+            except (json.JSONDecodeError, AttributeError) as e:
+                raise ValidationError(f"Error processing JSONField for instance {instance.pk}: {e}")
+        return data
+    
+    def set_case_completed(self):
+        workflow_instance = self.workflow_instance
+        workflow_instance.is_active = 0
+        workflow_instance.save()
+        self.status = CASE_COMPLETED
 
 class CaseData(BaseAuditModel):
     case = models.ForeignKey(Case, on_delete=models.PROTECT,related_name='case_data_case')

@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 from django.db.models import Q
 from base.util_files import handle_uploaded_file
+from base import constants
 
 import logging
 logger = logging.getLogger('django')
@@ -262,7 +263,7 @@ class FormTemplateForm(forms.ModelForm):
 					is_active = False
 				)
 			search.save()
-			my_cases_menu = AppMenu.objects.filter(parent_app_menu=instance.application, key='my-cases').first()
+			my_cases_menu = AppMenu.objects.filter(parent_app_menu=instance.application, key='my_cases').first()
 			if my_cases_menu is not None: 
 				new_form = AppMenu.objects.create(
 						menu_level = 2,
@@ -315,22 +316,7 @@ class TaskForm(forms.ModelForm):
 		super().clean()
 		if self.is_valid and self.cleaned_data and not self.cleaned_data.get('DELETE', False):
 			data = self.cleaned_data
-			if len(data.get('assign_to', [])) == 0 and data.get('assign_to_role', None) is None:
-				raise ValidationError(
-							"Neither 'assign to' nor 'assign to role' field contains value"
-						)
-			if len(data.get('assign_to', [])) != 0 and data.get('assign_to_role', None) is not None:
-				raise ValidationError(
-							"Either 'assign to' or 'assign to role' field should contain value"
-						)
-			
-class TaskInlineFormSet(BaseInlineFormSet):
-	def clean(self):
-		super().clean()
-		# Collect all cleaned form data
-		for form in self.forms:
-			if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
-				data = form.cleaned_data
+			if data.get('task_type', '') == constants.TASK_TYPE_FLOW : 
 				if len(data.get('assign_to', [])) == 0 and data.get('assign_to_role', None) is None:
 					raise ValidationError(
 								"Neither 'assign to' nor 'assign to role' field contains value"
@@ -339,6 +325,23 @@ class TaskInlineFormSet(BaseInlineFormSet):
 					raise ValidationError(
 								"Either 'assign to' or 'assign to role' field should contain value"
 							)
+			
+class TaskInlineFormSet(BaseInlineFormSet):
+	def clean(self):
+		super().clean()
+		# Collect all cleaned form data
+		for form in self.forms:
+			if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+				data = form.cleaned_data
+				if data.get('task_type', '') == constants.TASK_TYPE_FLOW : 
+					if len(data.get('assign_to', [])) == 0 and data.get('assign_to_role', None) is None:
+						raise ValidationError(
+									"Neither 'assign to' nor 'assign to role' field contains value"
+								)
+					if len(data.get('assign_to', [])) != 0 and data.get('assign_to_role', None) is not None:
+						raise ValidationError(
+									"Either 'assign to' or 'assign to role' field should contain value"
+								)
 
 class TaskInstanceForm(forms.ModelForm):
 	task_str = forms.CharField(label='Task')

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Workflow Task Decision Point Condition JSON Generator</title>
+<style>
+body {
+  font-family: sans-serif;
+}
+#conditions-container {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.condition {
+  border: 1px solid #eee;
+  padding: 5px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center; /* Align items vertically */
+}
+.condition label {
+  margin-right: 5px;
+}
+.condition select, .condition input {
+  flex: 1; /* Allow input to expand */
+  margin-right: 5px;
+}
+#json-output {
+  border: 1px solid #ccc;
+  padding: 10px;
+  white-space: pre-wrap; /* Preserve whitespace and wrap text */
+  overflow-y: auto; /* Add scrollbar if content overflows */
+  max-height: 200px; /* Set a maximum height */
+}
+</style>
+</head>
+<body>
+
+<h1>Workflow Task Decision Point Condition JSON Generator</h1>
+
+<label for="operator">Operator:</label>
+<select id="operator">
+  <option value="AND">AND (All conditions must be met)</option>
+  <option value="OR">OR (At least one condition must be met)</option>
+  <option value="NOT">NOT (Condition must not be met)</option>
+</select>
+
+<div id="conditions-container">
+  <div class="condition">
+    <label for="field_name_0">Field Name:</label>
+    <input type="text" id="field_name_0" name="field_name_0" value="username">
+    <label for="comparison_operator_0">Operator:</label>
+    <select id="comparison_operator_0" name="comparison_operator_0">
+      <option value="exact">Exact (=)</option>
+      <option value="iexact">Exact (case-insensitive)</option>
+      <option value="contains">Contains</option>
+      <option value="icontains">Contains (case-insensitive)</option>
+      <option value="startswith">Starts with</option>
+      <option value="istartswith">Starts with (case-insensitive)</option>
+      <option value="endswith">Ends with</option>
+      <option value="iendswith">Ends with (case-insensitive)</option>
+      <option value="gt">Greater than (>)</option>
+      <option value="gte">Greater than or equal to (>=)</option>
+      <option value="lt">Less than (<)</option>
+      <option value="lte">Less than or equal to (<=)</option>
+      <option value="in">In (Value is in a list)</option>
+      <option value="range">Range (Value is within a range)</option>
+      <option value="isnull">Is null (Value is null)</option>
+      <option value="regex">Regex (Regular expression match)</option>
+      <option value="iregex">Regex (Case-insensitive regular expression)</option>
+    </select>
+    <label for="compare_value_0">Value:</label>
+    <input type="text" id="compare_value_0" name="compare_value_0" value="John">
+    <button onclick="removeCondition(0)">Remove</button>
+  </div>
+</div>
+
+<button onclick="addCondition()">Add Condition</button>
+
+<h2>JSON Output:</h2>
+<pre id="json-output"></pre>
+
+<script>
+let conditionCount = 1;
+
+function generateJson() {
+  const operator = document.getElementById("operator").value;
+  const conditions = [];
+
+  for (let i = 0; i < conditionCount; i++) {
+    const fieldName = document.getElementById(`field_name_${i}`).value;
+    const comparisonOperator = document.getElementById(`comparison_operator_${i}`).value;
+    let compareValue = document.getElementById(`compare_value_${i}`).value;
+
+    // Type conversion for specific operators
+    if (comparisonOperator === "in" || comparisonOperator === "range") {
+        try {
+            compareValue = JSON.parse(compareValue); // Try parsing as JSON array
+        } catch (e) {
+            alert(`Invalid JSON array for 'in' or 'range' at condition ${i+1}`);
+            return; // Stop generation if invalid JSON
+        }
+    } else if (comparisonOperator === "isnull") {
+        compareValue = compareValue.toLowerCase() === 'true'; // Convert to boolean
+    } else if (comparisonOperator === "gt" || comparisonOperator === "gte" || comparisonOperator === "lt" || comparisonOperator === "lte") {
+        const num = Number(compareValue);
+        if (!isNaN(num)) {
+            compareValue = num;
+        }
+    }
+    conditions.push({
+      "field_name": fieldName,
+      "comparison_operator": comparisonOperator,
+      "compare_value": compareValue
+    });
+  }
+
+  const jsonOutput = {
+    "operator": operator,
+    "conditions": conditions
+  };
+
+  document.getElementById("json-output").textContent = JSON.stringify(jsonOutput, null, 2);
+}
+
+
+function addCondition() {
+  const conditionsContainer = document.getElementById("conditions-container");
+  const newCondition = document.createElement("div");
+  newCondition.className = "condition";
+  newCondition.innerHTML = `
+    <label for="field_name_${conditionCount}">Field Name:</label>
+    <input type="text" id="field_name_${conditionCount}" name="field_name_${conditionCount}">
+    <label for="comparison_operator_${conditionCount}">Operator:</label>
+    <select id="comparison_operator_${conditionCount}" name="comparison_operator_${conditionCount}">
+      <option value="exact">Exact (=)</option>
+      <option value="iexact">Exact (case-insensitive)</option>
+      <option value="contains">Contains</option>
+      <option value="icontains">Contains (case-insensitive)</option>
+      <option value="startswith">Starts with</option>
+      <option value="istartswith">Starts with (case-insensitive)</option>
+      <option value="endswith">Ends with</option>
+      <option value="iendswith">Ends with (case-insensitive)</option>
+      <option value="gt">Greater than (>)</option>
+      <option value="gte">Greater than or equal to (>=)</option>
+      <option value="lt">Less than (<)</option>
+      <option value="lte">Less than or equal to (<=)</option>
+      <option value="in">In (Value is in a list)</option>
+      <option value="range">Range (Value is within a range)</option>
+      <option value="isnull">Is null (Value is null)</option>
+      <option value="regex">Regex (Regular expression match)</option>
+      <option value="iregex">Regex (Case-insensitive regular expression)</option>
+    </select>
+    <label for="compare_value_${conditionCount}">Value:</label>
+    <input type="text" id="compare_value_${conditionCount}" name="compare_value_${conditionCount}">
+    <button onclick="removeCondition(${conditionCount})">Remove</button>
+  `;
+  conditionsContainer.appendChild(newCondition);
+  conditionCount++;
+  generateJson(); // Update JSON output when adding a condition
+}
+
+function removeCondition(index) {
+    const conditionToRemove = document.querySelector(`.condition:nth-child(${index + 1})`); // +1 because nth-child is 1-indexed
+    if (conditionToRemove) {
+        conditionToRemove.remove();
+        generateJson();// Update JSON output when removing a condition
+    }
+}
+
+// Initial JSON Generation
+generateJson();
+
+// Event listeners for input changes to dynamically update the JSON
+document.getElementById("operator").addEventListener("change", generateJson);
+document.getElementById("conditions-container").addEventListener("input", generateJson);
+document.getElementById("conditions-container").addEventListener("change", generateJson);
+
+
+</script>
+
+</body>
+</html>

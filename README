@@ -3,3 +3,20 @@ python manage.py makemigrations userManagement
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
+
+
+# For jsonForm app is created for dyname form template creation, dynamic workflow creation and dynamic form request submission.
+# By default, when a form template is created, it was set to save the form request data to jsonForm.Case, jsonForm.CaseData
+# In this case, when a form request is submitted, it will be saved to jsonForm.Case and jsonForm.CaseData. If it is set with a workflow, the workflow instance and task instance data will be saved to jsonForm.WorkflowInstance, jsonForm.TaskInstance 
+# BUT this design will not has good performance when the form request is submitted frequently or querying the form request data frequently.
+# The solution is to create a new app, and set the form template to save the form request data to the new app.
+# [STEP #1] copy and paste the following models to the new app's models.py file. (keep the same class/model name)
+# jsonForm.Case
+# jsonForm.CaseData
+# jsonForm.WorkflowInstance, jsonForm.TaskInstance
+# [STEP #2] copy and paste the following signal to the new app's signals.py file.
+# jsonForm.signals.case_saved
+# @receiver(pre_save, sender=Case)
+# def case_saved(sender, instance, **kwargs):
+# [STEP #3] Create or edit the form template, and set the form template to save the form request data to the new app.
+# Backend app label: [set to the new app label]

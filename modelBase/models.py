@@ -4,6 +4,10 @@ from django.apps import apps
 from base.validators import get_validator
 from base.cache import global_class_cache_decorator
 from base.util import get_object_or_redirect
+from jsonForm.models import CaseBaseModel, CaseDataBaseModel, WorkflowInstanceBaseModel, TaskInstanceBaseModel
+from base.constants import TASK_TYPE_CHOICES, TASK_TYPE_AUTO ,CASE_INITIATED, CASE_COMPLETED, CASE_CANCELLED
+import ast
+
 import uuid
 class PendingRecordModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -31,6 +35,8 @@ class ModelDictionaryConfigModel(BaseAuditModel):
     backend_app_model = models.CharField(max_length=127)
     model_label = models.CharField(max_length=255, default="model")
     pk_field_name = models.CharField(max_length=63, default='id', blank=True, null= True)
+    default_order_by = models.CharField(max_length=255, default="['id']",verbose_name ="a list of fields that used for ordering the records in list view", blank=True, null= True)
+    unique_keys = models.CharField(max_length=255, default="['id']", verbose_name ="a list of fields that make the record unique", blank=True, null= True) 
     fk_fields = models.JSONField(max_length=511, verbose_name="Are FK fields in the table or other table with one to one or many to one relationship", help_text='format [{"model": "model","field_name": "field_name","label": "label"}] ', blank=True, null= True) 
     fk_multi_fields = models.JSONField(max_length=511, verbose_name="As FK field in the table or other tables with one to many or manay to many relationship", help_text='format [{"model": "model","field_name": "field_name","label": "label"}]', blank=True, null= True)
     sub_tables = models.JSONField(max_length=511, verbose_name="related table to create, display, or modify", help_text='related table to create, display, or modify format [{"id_filter_name": "id_filter_name", "dictionary_code": "dictionary_code", "label": "label"}] ** id_filter_name should be the field name__id in the sub table model', blank=True, null= True)
@@ -87,6 +93,8 @@ class ModelDictionaryConfigModel(BaseAuditModel):
             'sub_tables': self.sub_tables,
             'pk_field_name': self.pk_field_name,
             'fk_fields': self.fk_fields,
+            'unique_keys': ast.literal_eval(self.unique_keys) if self.unique_keys else None,
+            'default_order_by': ast.literal_eval(self.default_order_by) if self.default_order_by else None,
             'fk_multi_fields': self.fk_multi_fields,
             'list_display': {f[0]: f[1] for f in self.get_list_display()},
             'add_fieldsets': {f[0]: f[1] for f in self.get_add_fieldsets()},
@@ -113,3 +121,31 @@ class ModelDictionaryItemsConfigModel(BaseAuditModel):
     list_display = models.BooleanField(default=True, verbose_name="fields for display in list")
     fieldsets = models.BooleanField(default=True, verbose_name="fields for display in details")
     edit_fieldsets = models.BooleanField(default=False, verbose_name="fields for enable edit")
+
+
+class WorkflowInstance(WorkflowInstanceBaseModel):
+    pass
+
+class TaskInstance(TaskInstanceBaseModel):
+    workflow_instance = models.ForeignKey(WorkflowInstance, related_name='task_instance_workflow_instance', on_delete=models.CASCADE, blank=True, null=True)
+    pass
+
+class Case(CaseBaseModel):
+    workflow_instance = models.ForeignKey(WorkflowInstance, related_name='case_workflow_instance', on_delete=models.CASCADE, blank=True, null=True)
+    task_instances = models.ManyToManyField(TaskInstance, related_name='case_task_instances') # should be one to many, but the design buill be better if use ManyToManyField, because TaskInstance is not only use in here
+    
+    def set_case_completed(self):
+        workflow_instance = self.workflow_instance
+        workflow_instance.is_active = 0
+        workflow_instance.save()
+        self.status = CASE_COMPLETED
+    
+    def get_task_instances_model(self):
+        return self._meta.get_field('task_instances').related_model
+
+    def get_workflow_instance_model(self):
+        return self._meta.get_field('workflow_instance').related_model 
+
+class CaseData(CaseDataBaseModel):
+    case = models.ForeignKey(Case, on_delete=models.PROTECT,related_name='case_data_case')
+

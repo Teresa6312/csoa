@@ -17,14 +17,32 @@
     const audit_exportCsv = {{ audit_exportCsv|default:False|yesno:"true,false" }};
     const audit_buttons = ['pageLength','colvis']
 
+    var audit_created_at_index = -1;
+    var audit_updated_at_index = -1;
+
     var toLoadAuditData = true
     // Function to create table header
     function define_audit_columns() {
         var columns = []
+        var index = 0
         for (key in audit_fields) {
             columns.push({data:key})
+            if (key === 'created_at') {
+                audit_created_at_index = index; // Store the index of 'created_at' column
+            } else if (key === 'updated_at') {
+                audit_updated_at_index = index; // Store the index of 'updated_at' column
+            }
+            index++;
         }
         return columns
+    }
+
+    var audit_order = [[0, 'desc']]; // Default order (ID column)
+    if (audit_updated_at_index !== -1) {
+        audit_order = [[audit_updated_at_index, 'desc']]; // Order by 'create_at' if it exists
+    }
+    else if (audit_created_at_index !== -1) {
+        audit_order = [[audit_updated_at_index, 'desc']]; // Order by 'create_at' if it exists
     }
 
     function load_audit_data() {
@@ -46,19 +64,17 @@
                         // Show custom error message
                         const message = xhr.responseJSON['message']
                         if(message === undefined) {
-                            $('#listAuditDataTable').html('<div class="alert alert-danger">System error</div>');
-                            alert("System error");
+                            createMessageBox('System error', 'error')
                         } else {
-                            $('#listAuditDataTable').html('<div class="alert alert-danger">'+message+'</div>');
-                            alert(message);
+                            createMessageBox(message, 'error')
                         }
-                        window.location.href = '{{ request.path|safe }}';
+                        // window.location.href = '{{ request.path|safe }}';
                     }
                 },
                 "columns": define_audit_columns(),  // 使用后端传递的列定义
                 "dom": 'Bfrtip',
                 "buttons": audit_buttons, 
-                "order": [[1, 'desc']] // order by column index, satrting from 0; 1 is change time 
+                "order": audit_order // order by column index, satrting from 0
             });   
             toLoadAuditData = false
         }

@@ -1,6 +1,6 @@
 from django.db.models.signals import pre_save  # Import the pre_save signal
 from django.dispatch import receiver  # Import the receiver decorator
-from .models import Case, WorkflowInstance, TaskInstance, Permission  # Import necessary models
+from .models import Case, WorkflowInstance, TaskInstance, FormSection  # Import necessary models
 from base import constants  # Import constants
 import logging  # Import logging module
 from .WorkflowExecutor import WorkflowExecutor  # Import the WorkflowExecutor class
@@ -41,6 +41,7 @@ def case_saved(sender, instance, **kwargs):
     elif instance.is_submited and form.workflow is not None and instance.workflow_instance is None:  # If the case is submitted, has a workflow, and no workflow instance yet
         workflow_instance = WorkflowInstance.objects.create(workflow=form.workflow)  # Create a new workflow instance
         instance.workflow_instance = workflow_instance  # Assign the workflow instance to the case
+        instance.workflow_name = form.workflow.name  # Set the workflow name for the case
         current_task = wf_executor.get_first_task(form.workflow)  # Get the first task of the workflow
         next_task = wf_executor.execute(instance, current_task)  # Execute the workflow from the first task
         if next_task is not None:  # If there is a next task
@@ -61,3 +62,14 @@ def case_saved(sender, instance, **kwargs):
                     instance.set_case_completed()  # Mark the case as completed
             else:  # If no decision point or next task, workflow is complete
                 instance.set_case_completed()  # Mark the case as completed
+
+
+
+# Generate and print the schema
+import json
+from .schema_generator import generate_json_schema
+
+@receiver(pre_save, sender=FormSection)  # Decorator to connect the function to the pre_save signal of the Case model
+def form_section_saved(sender, instance, **kwargs):
+    schema = generate_json_schema(instance.json_template)
+    instance.json_template_schema = schema

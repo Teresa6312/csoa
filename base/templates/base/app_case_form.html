@@ -1,7 +1,11 @@
 {% extends "base/app_base.html" %}
 {% load i18n static %}
 {% load custom_tags %}
-{% load render_table from django_tables2 %}
+
+{% block extrahead %} 
+{{ block.super }}
+<script src="/static/js/json_form.js"></script>
+{% endblock %}
 
 {% block content %}
 {% include "jsonForm_blocks/form_block.html" with form=form section_forms=section_forms case_form=case_form %}

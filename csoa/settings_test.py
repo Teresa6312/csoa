@@ -36,19 +36,30 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', '')
 
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 6379
-REDIS_DB = 0
+REDIS_DB = 2
+REDIS_PASSWORD = ''
 
 # myproject/settings.py
 CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
 CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
 
+CACHE_TIMEOUT_DEFAULT= 60 * 5  # 5 minutes
+CACHE_TIMEOUT_L1= 60 * 15  # 15 minutes
+CACHE_TIMEOUT_L2= 60 * 30  # 30 minutes
+CACHE_TIMEOUT_L3= 60 * 60  # 60 minutes
+
+# 
+# Redis Key format "%s:%s:%s" % (key_prefix, version, key)
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',  # Redis 服务器地址
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        }
+            'DECODE_RESPONSES': True,  # Important for correct data handling
+        },
+        'TIMEOUT': CACHE_TIMEOUT_DEFAULT,
+        # 'KEY_PREFIX': 'global'  # Optional prefix to avoid namespacing issues 
     }
 }
 

@@ -2,14 +2,14 @@ from django.db.models import OuterRef, Subquery, Value
 from django.db.models.functions import Coalesce, Cast
 from django.db.models import TextField
 from django.shortcuts import render, redirect
-from jsonForm.models import FormTemplate, TaskInstance, Workflow
+from jsonForm.models import FormTemplate, Workflow
 from userManagement.models import AppMenu
-from jsonForm.forms import TaskInstanceForm
+from jsonForm.forms import create_dynamic_task_instance_form
 from jsonForm import util as formUtil
 from .forms import HeaderingForm
 from .models import FileModel
-from jsonForm.tables import create_dynamic_case_table_class, create_dynamic_case_data_table_class, create_dynamic_case_data_filter
-from django_tables2 import RequestConfig
+# from jsonForm.tables import create_dynamic_case_table_class, create_dynamic_case_data_table_class, create_dynamic_case_data_filter
+# from django_tables2 import RequestConfig
 from django.db.models import JSONField
 from .util import CustomJSONEncoder, set_datatables_response, no_permission_redirect, get_model_class, get_object_or_redirect
 from .util_model import get_audit_history_fields, get_select_choices
@@ -21,7 +21,9 @@ from django.conf import settings
 from django.db.models import Q
 from functools import reduce
 from django.urls import reverse
-from .decorators import case_decorator
+
+from base.constants import TASK_TYPE_AUTO
+
 import json
 
 import logging
@@ -37,6 +39,9 @@ def create_case_view(request, context, app_name, form_code):
 		return redirect('app:app_home', app_name)
 	else:
 		context.update(case_context)
+	form_template = form.form_section_form_template.all().values()
+	form_template_data = json.dumps(list(form_template), cls=CustomJSONEncoder)
+	context['form_template'] = json.loads(form_template_data)
 	return render(request, template_name, context )
 
 def edit_case_view(request, context, app_name, form_code, case_id):
@@ -56,12 +61,17 @@ def edit_case_view(request, context, app_name, form_code, case_id):
 		context.update(case_context)
 	context['edit'] = True
 	context['datatables'] =  False
+	form_template = form.form_section_form_template.all().values()
+	form_template_data = json.dumps(list(form_template), cls=CustomJSONEncoder)
+	context['form_template'] = json.loads(form_template_data)
 	return render(request, template_name, context )
 
 def get_case_details(request, context, app_name, form_code, case_id):
 	
 	template_name = 'base/app_case_details.html'
 	case_instance = context['case_instance']
+	TaskInstance = case_instance.get_task_instances_model()
+	TaskInstanceForm = create_dynamic_task_instance_form(TaskInstance)
 	if case_instance is None:
 		return redirect('app:app_home', app_name)
 	task_fields = TaskInstance.selected_fields_info() # need to bre replace with a config table to maintains the field list like model dict
@@ -69,7 +79,10 @@ def get_case_details(request, context, app_name, form_code, case_id):
 	context['task_fields'] = task_fields
 
 	if case_instance.workflow_instance is not None:
-		tasks_queryset = case_instance.workflow_instance.task_instance_workflow_instance.all()
+		if request.user.is_superuser:
+			tasks_queryset = case_instance.workflow_instance.task_instance_workflow_instance.all()
+		else:
+			tasks_queryset = case_instance.workflow_instance.task_instance_workflow_instance.exclude(task__task_type=TASK_TYPE_AUTO)
 		context['task_instances'] = json.dumps(list(tasks_queryset.values(*task_fields_names).order_by('-created_at', '-updated_at')), cls=CustomJSONEncoder)
 	else:
 		context['task_instances'] = []
@@ -123,7 +136,8 @@ def get_case_details(request, context, app_name, form_code, case_id):
 	context['history_fields'] = get_audit_history_fields()
 # document settings
 	file_fields=FileModel.selected_fields_info() # need to bre replace with a config table to maintains the field list like model dict
-	file_fields['task_files__task__name'] = 'Task Name'
+	related_name = '%s_%s_files'% (TaskInstance._meta.app_label.lower(), TaskInstance._meta.model_name)
+	file_fields['%s__task__name'% related_name] = 'Task Name'
 
 # path('app/<str:app_name>/cases/search/<str:form_code>/details/documents/<int:case_id>##', request_decorator(get_case_details_documents_json), name='app_case_details_documents'), # app:app_case_details
 	context['file_data_url'] = reverse('api:app_case_details_documents', args=[
@@ -142,43 +156,7 @@ def get_case_details(request, context, app_name, form_code, case_id):
 	context['file_root'] = settings.MEDIA_URL
 	return render(request, template_name, context)
 
-def get_case_details_history_json(request, app_name, form_code, case_id):
-	try:
-		form = FormTemplate.get_instance_by_code(form_code)
-		model_class = get_model_class(form.backend_app_label, form.backend_app_model)
-		case_instance = model_class.objects.get(pk=case_id)
-	except Exception as e:
-		logger.error(e)
-		return JsonResponse({'message': "Case Not  Found"}, status=404)
-	data = formUtil.get_case_audit_history(case_instance)
-	data_json = json.dumps(data, cls=CustomJSONEncoder)
-	records_total = len(data)
-	response_data = {
-		'recordsTotal': records_total,
-		'recordsFiltered': records_total, 
-		'data': json.loads(data_json)
-	}
-	return JsonResponse(response_data, safe=True)
 
-def get_case_details_documents_json(request, app_name, form_code, case_id):
-	try:
-		form = FormTemplate.get_instance_by_code(form_code)
-		model_class = get_model_class(form.backend_app_label, form.backend_app_model)
-		case_instance = model_class.objects.get(pk=case_id)
-	except Exception as e:
-		logger.error(e)
-		return JsonResponse({'message': "Case Not  Found"}, status=404)
-	fields=FileModel.selected_fields_info()
-	fields['task_files__task__name'] = 'Task Name'
-	data = FileModel.objects.filter(task_files__case_task_instances__id = case_id).order_by('-created_at').values(*fields)
-	data_json = json.dumps(list(data), cls=CustomJSONEncoder)
-	records_total = len(data)
-	response_data = {
-		'recordsTotal': records_total,
-		'recordsFiltered': records_total, 
-		'data': json.loads(data_json)
-	}
-	return JsonResponse(response_data, safe=True)
 
 # all the forms linked in one mini_app should using same table to store data
 # if the forms use different table to store data, need to create another view
@@ -217,7 +195,7 @@ def get_my_cases_view(request, context, app_name):
 
 	context['fields'] = model_class.selected_fields_info()
 	context['id_key'] = "id"
-	context['other_key'] = "form__code"
+	context['other_key'] = "form_code"
 	context['permission__details'] = permission__details
 	context['permission__edit'] = permission__edit
 	context['data_url'] = reverse('api:app_my_cases_data', args=[
@@ -236,141 +214,90 @@ def get_my_cases_view(request, context, app_name):
 		])
 	return render(request, template_name, context)
 
-def get_my_cases_view_data(request, app_name, type):
 
-	form = AppMenu.get_app_form_by_key(app_name)
-	model_class = form.get_model_class()
-	fields = model_class.selected_fields_info()
+# # search all forms in the app, rearrange header only shows when a form was search
+# def get_cases_search_view(request, context, app_name):
+# 	# ----------------------------------------------------------------------------------
+# 	# 1. initialize all the default data
+# 	# ----------------------------------------------------------------------------------
+# 	template_name = 'base/app_cases_search.html'
+#     # Initialize selected headers
+# 	initial_form_value = request.session.get('initial_form_value', '')
+# 	selected_headers = request.session.get('initial_selected_headers', [])
 
-	user_permissions = request.user.permissions.filter(app__key=app_name)
-	if type == 'todoList':
-		cases = model_class.objects.filter(
-			Q(
-				form__application__key=app_name, 
-				is_submited=True, 
-				workflow_instance__is_active=True, 
-				task_instances__is_active=True,
-				task_instances__assign_to__in=user_permissions # assigned cases
-			) |
-			Q(
-				form__application__key=app_name,  
-				created_by = request.user, 
-				is_submited=False # draft cases
-			)
-			).exclude(status='Cancelled').distinct().order_by('-updated_by')
-	elif type == 'ongoingList':
-		cases = model_class.objects.filter(
-			(
-				Q(task_instances__assign_to__in=user_permissions) |
-				Q(created_by = request.user)
-			) & 
-			Q(
-				form__application__key=app_name, 
-				is_submited=True, 
-				workflow_instance__is_active=True, 
-			)
-			).exclude(status='Cancelled').distinct().order_by('-updated_by')
-	elif type == 'completedList':
-		cases = model_class.objects.filter(
-			(
-				Q(task_instances__assign_to__in=user_permissions) |
-				Q(created_by = request.user)
-			) & 
-			Q(
-				form__application__key=app_name, 
-				is_submited=True, 
-				workflow_instance__is_active=False, 
-			)
-			).exclude(status='Cancelled').distinct().order_by('-updated_by')
-	else:
-		return JsonResponse({"message": "Page not Found"}, status=404)
-	field_keys = list(fields.keys())
-	response_data = set_datatables_response(request, cases, field_keys, field_keys)
-	return JsonResponse(response_data, safe=True)
-
-# search all forms in the app, rearrange header only shows when a form was search
-def get_cases_search_view(request, context, app_name):
-	# ----------------------------------------------------------------------------------
-	# 1. initialize all the default data
-	# ----------------------------------------------------------------------------------
-	template_name = 'base/app_cases_search.html'
-    # Initialize selected headers
-	initial_form_value = request.session.get('initial_form_value', '')
-	selected_headers = request.session.get('initial_selected_headers', [])
-
-	mini_app = context['mini_app']
-	forms = FormTemplate.objects.filter(application=mini_app)
-	case_data_class = forms.first().get_section_model_class()
-	queryset = case_data_class.objects.filter(case__form__application=mini_app, case__is_submited=True, form_section__index=0).exclude(case__status='Cancelled')
-	# Apply additional filters from the request
-	CaseDataFilter = create_dynamic_case_data_filter(case_data_class)
-	case_filter = CaseDataFilter(request.GET, queryset=queryset)
-	case_filter.form.fields['form'].queryset = forms
-	# ----------------------------------------------------------------------------------
-	# 2. if there is any filters: 
-	# ----------------------------------------------------------------------------------
-	# Check if any filter fields have been filled out
-	filters_active = bool(request.GET)  # Check if any GET parameters are present
-	headers=[]
-	if filters_active and case_filter.form.is_valid() and request.GET.get('form', '') != '':
-		# ----------------------------------------------------------------------------------
-		#  3 get the form, and set up the header selections for "Re-arrange Heading"
-		# ----------------------------------------------------------------------------------
-		form = get_object_or_redirect(FormTemplate, pk=request.GET.get('form'))
-		headers =FormTemplate.get_headers_by_code(form.code) 
-		# ----------------------------------------------------------------------------------
-		# 4 need to detect if the form filter was changed, if so selected_headers need to be reset
-		# ----------------------------------------------------------------------------------
-		if not initial_form_value == '' and not initial_form_value == request.GET.get('form'):
-			selected_headers= []
-		request.session['initial_form_value'] = request.GET['form']
+# 	mini_app = context['mini_app']
+# 	forms = FormTemplate.objects.filter(application=mini_app)
+# 	case_data_class = forms.first().get_section_model_class()
+# 	queryset = case_data_class.objects.filter(case__form__application=mini_app, case__is_submited=True, form_section__index=0).exclude(case__status='Cancelled')
+# 	# Apply additional filters from the request
+# 	CaseDataFilter = create_dynamic_case_data_filter(case_data_class)
+# 	case_filter = CaseDataFilter(request.GET, queryset=queryset)
+# 	case_filter.form.fields['form'].queryset = forms
+# 	# ----------------------------------------------------------------------------------
+# 	# 2. if there is any filters: 
+# 	# ----------------------------------------------------------------------------------
+# 	# Check if any filter fields have been filled out
+# 	filters_active = bool(request.GET)  # Check if any GET parameters are present
+# 	headers=[]
+# 	if filters_active and case_filter.form.is_valid() and request.GET.get('form', '') != '':
+# 		# ----------------------------------------------------------------------------------
+# 		#  3 get the form, and set up the header selections for "Re-arrange Heading"
+# 		# ----------------------------------------------------------------------------------
+# 		form = get_object_or_redirect(FormTemplate, pk=request.GET.get('form'))
+# 		headers =FormTemplate.get_headers_by_code(form.code) 
+# 		# ----------------------------------------------------------------------------------
+# 		# 4 need to detect if the form filter was changed, if so selected_headers need to be reset
+# 		# ----------------------------------------------------------------------------------
+# 		if not initial_form_value == '' and not initial_form_value == request.GET.get('form'):
+# 			selected_headers= []
+# 		request.session['initial_form_value'] = request.GET['form']
 		
-		# ----------------------------------------------------------------------------------
-		# 5. if user click "Re-arrange Heading"
-		# ----------------------------------------------------------------------------------
-		if request.method == 'POST':
-			header_form = HeaderingForm(request.POST)
-			header_form.fields['headers'].choices = [(a['key'], a['label']) for a in headers if not a['input']=='list']
-			if header_form.is_valid():
-				# Process header form data
-				selected_headers = header_form.cleaned_data['headers']
-				request.session['initial_selected_headers'] = selected_headers
-		else:
-			header_form = HeaderingForm(initial={'headers': selected_headers})
-			header_form.fields['headers'].choices = [(a['key'], a['label']) for a in headers if not a['input']=='list']
-		context['header_form'] = header_form
+# 		# ----------------------------------------------------------------------------------
+# 		# 5. if user click "Re-arrange Heading"
+# 		# ----------------------------------------------------------------------------------
+# 		if request.method == 'POST':
+# 			header_form = HeaderingForm(request.POST)
+# 			header_form.fields['headers'].choices = [(a['key'], a['label']) for a in headers if not a['input']=='list']
+# 			if header_form.is_valid():
+# 				# Process header form data
+# 				selected_headers = header_form.cleaned_data['headers']
+# 				request.session['initial_selected_headers'] = selected_headers
+# 		else:
+# 			header_form = HeaderingForm(initial={'headers': selected_headers})
+# 			header_form.fields['headers'].choices = [(a['key'], a['label']) for a in headers if not a['input']=='list']
+# 		context['header_form'] = header_form
 		
-		# ----------------------------------------------------------------------------------
-		# 6. if selected_headers is not empty, need to reset the data table
-		# ----------------------------------------------------------------------------------
-		if len(selected_headers)>0:
-			headers = [ a for a in headers if a['key'] in selected_headers]
-			index_set = set([ a['index'] for a in headers if not a['index'] == 0 ])
-			annotated_fields = {}
-			for i in index_set:
-				case_data_subquery = case_data_class.objects.filter(
-					case=OuterRef('case__id'),  # Refers to the outer Request model's primary key
-					form_section__index=i
-				).values('section_data')
-				annotated_fields[f'section_data_{i}'] = Coalesce(Subquery(case_data_subquery, output_field=JSONField()), Value('{}', output_field=JSONField()))
-			queryset = queryset.annotate(**annotated_fields)
-			case_filter = CaseDataFilter(request.GET, queryset=queryset)
-			case_filter.form.fields['form'].queryset = forms
-		# DynamicTable = create_dynamic_case_data_table_class(case_data_class, headers)
-		# cases =  DynamicTable(case_filter.qs)
-	DynamicTable = create_dynamic_case_data_table_class(case_data_class, headers, show_details=True)
-	cases = DynamicTable(case_filter.qs)
+# 		# ----------------------------------------------------------------------------------
+# 		# 6. if selected_headers is not empty, need to reset the data table
+# 		# ----------------------------------------------------------------------------------
+# 		if len(selected_headers)>0:
+# 			headers = [ a for a in headers if a['key'] in selected_headers]
+# 			index_set = set([ a['index'] for a in headers if not a['index'] == 0 ])
+# 			annotated_fields = {}
+# 			for i in index_set:
+# 				case_data_subquery = case_data_class.objects.filter(
+# 					case=OuterRef('case__id'),  # Refers to the outer Request model's primary key
+# 					form_section__index=i
+# 				).values('section_data')
+# 				annotated_fields[f'section_data_{i}'] = Coalesce(Subquery(case_data_subquery, output_field=JSONField()), Value('{}', output_field=JSONField()))
+# 			queryset = queryset.annotate(**annotated_fields)
+# 			case_filter = CaseDataFilter(request.GET, queryset=queryset)
+# 			case_filter.form.fields['form'].queryset = forms
+# 		# DynamicTable = create_dynamic_case_data_table_class(case_data_class, headers)
+# 		# cases =  DynamicTable(case_filter.qs)
+# 	DynamicTable = create_dynamic_case_data_table_class(case_data_class, headers, show_details=True)
+# 	cases = DynamicTable(case_filter.qs)
 		
-	# pagging
-	RequestConfig(request, paginate={"per_page": 25}).configure(cases)
+# 	# pagging
+# 	RequestConfig(request, paginate={"per_page": 25}).configure(cases)
 
-	context['forms'] = forms
-	context['cases'] = cases
-	context['filter'] = case_filter
-	context['selected_headers'] = selected_headers
-	context['django_tables2'] = True
-	context['datatables'] = False
-	return render(request, template_name, context)
+# 	context['forms'] = forms
+# 	context['cases'] = cases
+# 	context['filter'] = case_filter
+# 	context['selected_headers'] = selected_headers
+# 	context['django_tables2'] = True
+# 	context['datatables'] = False
+# 	return render(request, template_name, context)
 
 # CaseData need to be changed, get model class from form for queryset
 def get_cases_search_by_form_view(request, context, app_name, form_code):
@@ -416,35 +343,3 @@ def get_case_workflow_view(request, context, app_name, form_code, case_id):
 	context['workflow_data'] = workflow_data
 	return render(request, template_name, context)
 
-@case_decorator
-def get_cases_search_by_form_view_data(request,context, app_name, form_code, app_id, form_id, index):
-	form = context['form']
-	case_data_class = get_model_class(form.backend_app_label, form.backend_app_section_model)
-	queryset = case_data_class.objects.filter(case__form__application=app_id, case__form= form_id, case__is_submited=True, form_section__index=index).exclude(case__status='Cancelled')
-	fields = case_data_class.selected_fields_info()
-	headers = FormTemplate.get_headers_by_code(form_code)
-	# to control form template that has more than one section
-	search_keys = []
-	for h in headers:
-		if h['index']==index:
-			fields[f"section_data__{h['key']}"] = h['label']
-			search_keys.append(f"section_data__{h['key']}")
-	field_names = list(fields.keys())
-	response_data = set_datatables_response(request, queryset, field_names, search_keys)
-	return JsonResponse(response_data, safe=True)
-
-@case_decorator
-def get_case_details_file_download_view(request, context, app_name, form_code, case_id ,file_id):
-	case_instance = context['case_instance']
-	if case_instance is None:
-		return redirect('app:app_home', app_name)
-	data = case_instance.case_data_case.annotate(
-				section_data_str=Cast('section_data', TextField())
-			).filter(section_data_str__icontains=file_id)
-	if data is None or data.count()==0:
-		data = case_instance.task_instances.filter(files__id=file_id)
-	if data is not None and  data.count()>0 :
-		file = FileModel.objects.filter(id=file_id)
-		if file.count()==1:
-			return download_file(request, file.first())
-	return HttpResponse("The requested file was not found on the server", status=404)

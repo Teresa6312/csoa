@@ -6,6 +6,12 @@
 {{form}}
 {% endblock%}
 
+
+{% block extrahead %} 
+{{ block.super }}
+<script src="/static/js/json_form.js"></script>
+{% endblock %}
+
 {% block content %}
 {% if permission__workflow and form.workflow %}
     <a id="workflow"  href="{% url 'forms:workflow_view' form.workflow.id  %}" target="_blank" class="w3-xlarge">

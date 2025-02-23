@@ -4,6 +4,8 @@ from .models import FormTemplate, Workflow, Task
 from .forms import CaseForm
 from base.util import get_object_or_redirect
 from .util import create_case_view, edit_case_data_view
+import json
+from base.util import CustomJSONEncoder
 
 class JsonFormListView(TemplateView):
     template_name = 'jsonForm/form_list.html'
@@ -30,6 +32,9 @@ def form_template_view(request, form_id):
     case_form.fields['case_team'].initial = request.user.team.first()
     context = create_case_view(request, form)
     context['view'] = True
+    form_template = form.form_section_form_template.all().values()
+    form_template_data = json.dumps(list(form_template), cls=CustomJSONEncoder)
+    context['form_template'] = json.loads(form_template_data)
     return render(request, template_name, context)
 
 def form_edit_case_data_view(request, case_id, form_id):

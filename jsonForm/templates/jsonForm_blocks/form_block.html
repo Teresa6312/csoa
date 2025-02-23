@@ -1,7 +1,7 @@
 {% block content %}
 <h1>{{form}}</h1>
 <h3>{{form.description}}</h3>
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" id="main-form">
 {% csrf_token %}
 {% for field in case_form %}
     <div class="w3-padding">
@@ -22,62 +22,60 @@
     </div>
 {% endfor %}
 {% for section in section_forms %}
-    <div id="form_section_id_{{section.form_section_id.value}}" class="module w3-container">
+    <div id="form_section_id_{{section.form_section_id.value}}" class="module w3-container ">
         {% for field in section %}
-            <div class="w3-padding">
-            {% if not field.is_hidden %}
-                {{ field.label_tag }}
-            {% endif %}
-            {% if field.help_text %}
-                <p class="help-text">{{ field.help_text }}</p>
-            {% endif %}
-            
-            {{ field }}
-            
-            {% if field.errors %}
-                <div class="errorlist">
-                {{ field.errors }}
-                </div>
-            {% endif %}
+            <div class="{% if not field.is_hidden %} w3-padding w3-half form-input-container {% endif %}" id="{{ field.name }}_container">
+                {% if not field.is_hidden %}
+                    {{ field.label_tag }}
+                    {% if field.help_text %}
+                        <p class="help-text">{{ field.help_text }}</p>
+                    {% endif %}
+                {% endif %}
+                {{ field }}
+                {% if field.errors %}
+                    <div class="errorlist">
+                    {{ field.errors }}
+                    </div>
+                {% endif %}
             </div>
         {% endfor %}
         <!-- Render nested formsets -->
         {% for field_name, nested_formset in section.nested_formsets.items %}
-            <fieldset id="{{ field_name }}_formset">
-                {% for field_name2, value in section.nested_formset_fields.items %}
-                    {% if field_name == field_name2 %}
-                    <legend>{{value.label}}{% if value.required %}*{% endif %}:</legend>
-                    {% endif %}
-                {% endfor %}
-                <button type="button" onclick="addFormset('{{ field_name }}')">Add {{ field_name }}</button>
-                {{ nested_formset.management_form }}
-                {% for nested_form in nested_formset %}
-                    <div class="formset-form">
-                        {% for field in nested_form %}
-                            <div class="w3-padding">
-                            {% if not field.is_hidden %}
-                                {{ field.label_tag }}
-                            {% endif %}
-                            {% if field.help_text %}
-                                <p class="help-text">{{ field.help_text }}</p>
-                            {% endif %}
-                        
-                            {{ field }}
-                        
-                            {% if field.errors %}
-                                <div class="errorlist">
-                                {{ field.errors }}
+            <div class="w3-padding w3-row" id="{{ field_name }}_container">
+                <fieldset id="{{ field_name }}_formset">
+                    {% for field_name2, value in section.nested_formset_fields.items %}
+                        {% if field_name == field_name2 %}
+                        <legend>{{value.label}}{% if value.required %}*{% endif %}:</legend>
+                        {% endif %}
+                    {% endfor %}
+                    <button class="w3-padding w3-grey w3-border-0" type="button" onclick="addFormset('{{ field_name }}')">Add {{ field_name }}</button>
+                    {{ nested_formset.management_form }}
+                    {% for nested_form in nested_formset %}
+                        <div class="formset-form w3-row">
+                            {% for field in nested_form %}
+                                <div class="w3-padding">
+                                {% if not field.is_hidden %}
+                                    {{ field.label_tag }}
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <p class="help-text">{{ field.help_text }}</p>
+                                {% endif %}
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="errorlist">
+                                    {{ field.errors }}
+                                    </div>
+                                {% endif %}
                                 </div>
-                            {% endif %}
-                            </div>
-                        {% endfor %}
-                        <button type="button" onclick="removeFormset(this.parentElement)">Remove</button>
+                            {% endfor %}
+                            <button class="w3-padding w3-red w3-border-0" type="button" onclick="removeFormset(this.parentElement)">Remove</button>
+                        </div>
+                    {% endfor %}
+                    <div class="formset-form template" style="display: none;">
+                        {{ nested_formset.empty_form.as_p }}
                     </div>
-                {% endfor %}
-                <div class="formset-form template" style="display: none;">
-                    {{ nested_formset.empty_form.as_p }}
-                </div>
-            </fieldset>
+                </fieldset>
+            </div>
         {% endfor %}
     </div>
 {% endfor%}
@@ -95,61 +93,11 @@
 </form>
 
 <script type="text/javascript">
-    function addFormset(formsetPrefix) {
-        var totalForms = document.querySelector(`#id_${formsetPrefix}-TOTAL_FORMS`);
-        if (!totalForms) {
-            console.error(`Element with id id_${formsetPrefix}-TOTAL_FORMS not found`);
-            return;
-        }
-        var formCount = parseInt(totalForms.value);
-        var formsetContainer = document.querySelector(`#${formsetPrefix}_formset`);
 
-        if (!formsetContainer) {
-            console.error(`Element with id ${formsetPrefix}_formset not found`);
-            return;
-        }
-
-        var formsetTemplate = document.querySelector(`#${formsetPrefix}_formset .formset-form.template`);
-        if (!formsetTemplate) {
-            console.error(`Formset template with class .template not found`);
-            return;
-        }
-
-        var newForm = formsetTemplate.cloneNode(true);
-        var regex = new RegExp(`${formsetPrefix}-(\\d+|__prefix__)`, 'g');
-        var newHtml = newForm.innerHTML.replace(regex, `${formsetPrefix}-${formCount}`);
-
-        // Append the new formset HTML to the container
-        var newFormset = document.createElement('div');
-        newFormset.classList.add('formset-form');
-        newFormset.innerHTML = newHtml;
-
-        // Clear the values in the cloned form fields
-        newFormset.querySelectorAll('input, select, textarea').forEach(input => input.value = '');
-
-        formCount++;
-        totalForms.value = formCount;
-        formsetContainer.appendChild(newFormset);
-
-        // Add remove button to the new formset
-        var removeButton = document.createElement('button');
-        removeButton.setAttribute('type', 'button');
-        removeButton.textContent = 'Remove';
-        removeButton.addEventListener('click', function() {
-            removeFormset(newFormset);
-        });
-        newFormset.appendChild(removeButton);
-    }
-
-    function removeFormset(formsetForm) {
-        let checkbox = formsetForm.querySelector('input[type="checkbox"][id$="-DELETE"]');
-        if (checkbox) {
-            checkbox.checked = true;
-        }
-        formsetForm.style.display = 'none';
-    }
-    
     $(document).ready( function() {
+        // 初始化配置
+        const formConfig = {{ form_template|safe }};
+        initializeForm(formConfig, 'main-form');
         // Find all DELETE checkboxes in the formset
         let deleteCheckboxes = document.querySelectorAll('input[name$="-DELETE"]');
         // Hide each DELETE checkbox

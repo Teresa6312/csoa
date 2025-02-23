@@ -1,77 +1,220 @@
 {
-    "form_title": "调查问卷",
-    "elements": [
-      {
-        "type": "text",
-        "label": "姓名",
-        "name": "name",
-        "required": true
-      },
-      {
-        "type": "select",
-        "label": "国家",
-        "name": "country",
-        "options": [
-          {"value": "china", "label": "中国"},
-          {"value": "usa", "label": "美国"}
-        ],
-        "related_fields": ["province"]
-      },
-      {
-        "type": "select",
-        "label": "省份",
-        "name": "province",
-        "options": {
-          "china": [
-            {"value": "beijing", "label": "北京"},
-            {"value": "shanghai", "label": "上海"}
-          ],
-          "usa": [
-            {"value": "california", "label": "加州"},
-            {"value": "newyork", "label": "纽约"}
+  "version": "3.0",
+  "sections": [{
+    "country": {
+      "label": "国家",
+      "input": "select",
+      "choices": ["中国", "美国", "日本"],
+      "choices_map": ["MAPPING_LIST", "countryA"],
+      "connect_with": ["province", "city"],
+      "required": true
+    },
+    "country2": {
+      "label": "国家2",
+      "input": "select_multiple",
+      "choices": ["中国", "美国", "日本"],
+      "required": true,
+      "to_display_fields": ["specialTerms", "specialTerms2", "specialTerms3"],
+      "to_display_conditions": [
+        {
+          "field": "specialTerms",
+          "operator": "AND",
+          "conditions": [
+            { 
+              "type": "Array Operators",
+              "comparison_operator": "-excludes", 
+              "compare_value": ["中国"]
+            },
+            { 
+              "type": "String Operators",
+              "comparison_operator": "notEquals", 
+              "compare_value": ""
+            }          
           ]
         },
-        "dependency": "country"
-      },
-      {
-        "type": "radio",
-        "label": "性别",
-        "name": "gender",
-        "options": [
-          {"value": "male", "label": "男"},
-          {"value": "female", "label": "女"}
-        ],
-        "related_fields": ["age"]
-      },
-      {
-        "type": "number",
-        "label": "年龄",
-        "name": "age",
-        "validation": {
-          "male": {"min": 18, "max": 30},
-          "female": {"min": 20, "max": 35}
+        {
+          "field": "specialTerms2",
+          "operator": "AND",
+          "conditions": [
+            { 
+              "type": "Array Operators",
+              "comparison_operator": "equal",
+              "compare_value": ["中国", "美国"]
+            }]
         },
-        "dependency": "gender"
-      },
-      {
-        "type": "text",
-        "label": "问题1",
-        "name": "question1",
-        "show_if": {
-          "field": "age",
-          "operator": ">=",
-          "value": 25
+        {
+          "field": "specialTerms3",
+          "operator": "AND",
+          "conditions": [
+            { 
+              "type": "Array Operators",
+              "comparison_operator": "-any",
+              "compare_value": ["日本"]
+            }]
         }
-      },
-      {
-        "type": "text",
-        "label": "问题2",
-        "name": "question2",
-        "show_if": {
-          "field": "question1",
-          "operator": "contains",
-          "value": "yes"
+      ]
+    },
+    "specialTerms": {
+      "label": "Special Terms excludes 中国",
+      "input": "string",
+      "length": 500
+    },
+    "specialTerms3": {
+      "label": "Special Terms3 Array includes 日本",
+      "input": "string",
+      "length": 500
+    },
+    "specialTerms2": {
+      "label": "Special Terms2 value all in [中国, 美国]",
+      "input": "string",
+      "length": 500
+    },
+    "province": {
+      "label": "省份",
+      "input": "select",
+      "choices": ["北京", "上海", "广州", "深圳"],
+      "connect_with": ["country", "city"],
+      "choices_map": ["MAPPING_LIST", "provinceB"],
+      "required": true
+    },
+    "city": {
+      "label": "City",
+      "input": "select",
+      "choices": ["A", "B", "C", "D"],
+      "connect_with": ["country", "province"],
+      "choices_map": ["MAPPING_LIST", "cityC"],
+      "required": true
+    },
+    "gender": {
+      "label": "性别",
+      "input": "select",
+      "choices": ["男", "女"],
+      "to_validate_fields": ["age"],
+      "required": true
+    },
+    "age": {
+      "label": "年龄",
+      "input": "decimal",
+      "max_digits": 3,
+      "decimal_places": 0,
+      "validation": 
+        [
+          {
+            "operator": "AND",
+            "conditions": [
+              { 
+                "type": "Comparison Operators",
+                "field_name": "gender",
+                "comparison_operator": "==",
+                "compare_value": "男"
+              }],
+            "rule": {
+              "type": "range",
+              "value": {"min": 18, "max": 30}
+              }
+          },
+          {
+            "operator": "AND",
+            "conditions": [
+              { 
+                "type": "Comparison Operators",
+                "field_name": "gender",
+                "comparison_operator": "==",
+                "compare_value": "女"
+              }],
+            "rule": {
+              "type": "range",
+              "value": {"min": 20, "max": 35}
+              }
+          }
+        ],
+        "required": true
+    },
+    "contractAmount": {
+      "label": "Contract Amount",
+      "input": "decimal",
+      "max_digits": 10,
+      "decimal_places": 2,
+      "required": true
+    },
+    "documentName": {
+      "label": "Document Name",
+      "length": 500,
+      "input": "string",
+      "required": true
+    },
+    "contractRemark": {
+      "label": "Contract Remarks",
+      "length": 1000,
+      "input": "string"
+    },
+    "attachments": {
+      "label": "Attachment(s)",
+      "input": "list",
+      "required": true,
+      "fields": {
+        "attachment": {
+          "label": "Attachment",
+          "input": "file",
+          "required": true
+        },
+        "remark": {
+          "label": "Remark",
+          "input": "string",
+          "length": 500
         }
       }
-    ]
-  }
+    }
+  }]
+}
+// { 
+//   "type": "Array Operators",
+//   "comparison_operator": "excludes",  =>  ["中国"].excludes(value)!!!!!!!!!!!!!!!!!!!!
+//   "compare_value": ["中国"]
+// }
+// { 
+//   "type": "Array Operators",
+//   "comparison_operator": "-excludes", =>value.excludes(["中国"])!!!!!!!!!!!!!!!!!!!!
+//   "compare_value": ["中国"]
+// }
+// "conditional_sections": [
+//     {
+//       "id": "high_value_attachments",
+//       "show_if": {
+//         "field": "contractAmount",
+//         "condition": ">=",
+//         "value": 10000
+//       },
+//       "fields": ["attachments"]
+//     },
+//     {
+//       "id": "international_clause",
+//       "show_if": {
+//         "field": "country",
+//         "condition": "!=",
+//         "value": "中国"
+//       },
+//       "fields": ["specialTerms"]
+//     }
+//   ],
+//   "validation_rules": {
+//     "age_validation": {
+//       "type": "range",
+//       "depends_on": "gender",
+//       "target": "age",
+//       "rules": {
+//         "男": {"min": 18, "max": 30},
+//         "女": {"min": 20, "max": 35}
+//       }
+//     },
+//     "amount_validation": {
+//       "type": "max_value",
+//       "depends_on": "country",
+//       "target": "contractAmount",
+//       "rules": {
+//         "中国": 500000,
+//         "美国": 1000000,
+//         "日本": 800000
+//       }
+//     }
+//   }

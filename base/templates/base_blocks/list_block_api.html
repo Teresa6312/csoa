@@ -21,6 +21,9 @@
     const id_key = "{{ id_key }}"
     const other_key = "{{ other_key|default:''}}"
 
+    var created_at_index = -1;
+    var updated_at_index = -1;
+
     var details_url = "{{ details_url|default:None }}"; // Use "0" as a placeholder for the ID
     var edit_url = "{{ edit_url|default:None }}"; // Use "0" as a placeholder for the ID
 
@@ -29,8 +32,15 @@
     // Function to create table header
     function defineColumns() {
         var columns = []
+        var index = 0
         for (key in data_fields) {
             columns.push({data:key})
+            if (key === 'created_at') {
+                created_at_index = index; // Store the index of 'created_at' column
+            } else if (key === 'updated_at') {
+                updated_at_index = index; // Store the index of 'updated_at' column
+            }
+            index++;
         }
         columns.push({data: 'Action'})
         return columns
@@ -54,6 +64,14 @@
         ]
     }
 
+    var order = [[0, 'desc']]; // Default order (ID column)
+    if (updated_at_index !== -1) {
+        order = [[updated_at_index, 'desc']]; // Order by 'create_at' if it exists
+    }
+    else if (created_at_index !== -1) {
+        order = [[created_at_index, 'desc']]; // Order by 'create_at' if it exists
+    }
+
     $(document).ready(function() {
         if(perm_exportCsv) {
             buttons.push('csv')
@@ -72,13 +90,11 @@
                     // Show custom error message
                     const message = xhr.responseJSON['message']
                     if(message === undefined) {
-                        $('#listDataTable').html('<div class="alert alert-danger">System error</div>');
-                        alert("System error");
+                        createMessageBox('System error', 'error')
                     } else {
-                        $('#listDataTable').html('<div class="alert alert-danger">'+message+'</div>');
-                        alert(message);
+                        createMessageBox(message, 'error')
                     }
-                    window.location.href = '{{ request.path|safe }}';
+                    // window.location.href = '{{ request.path|safe }}';
                 }
             },
             "columns": defineColumns(),  // 使用后端传递的列定义
@@ -86,7 +102,7 @@
             "idSrc": id_key,
             "buttons": buttons,
             "columnDefs": defineActionColumns(),
-            "order": [[1, 'desc']] // order by column index, satrting from 0; 1 is change time 
+            "order": order
         }); 
         // Correct the click event binding
         $('#listDataTable tbody').on('click', '#perm_details', function () {

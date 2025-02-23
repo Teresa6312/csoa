@@ -17,13 +17,31 @@
     const exportCsv = {{ exportCsv|default:False|yesno:"true,false" }};
     const buttons = ['pageLength','colvis']
 
+    var created_at_index = -1;
+    var updated_at_index = -1;
+
     // Function to create table header
     function define_columns() {
         let columns = []
+        var index = 0
         for (key in fields) {
             columns.push({data:key})
+            if (key === 'created_at') {
+                created_at_index = index; // Store the index of 'created_at' column
+            } else if (key === 'updated_at') {
+                updated_at_index = index; // Store the index of 'updated_at' column
+            }
+            index++;
         }
         return columns
+    }
+
+    var order = [[0, 'desc']]; // Default order (ID column)
+    if (updated_at_index !== -1) {
+        order = [[updated_at_index, 'desc']]; // Order by 'create_at' if it exists
+    }
+    else if (created_at_index !== -1) {
+        order = [[created_at_index, 'desc']]; // Order by 'create_at' if it exists
     }
 
     $(document).ready(function(){
@@ -35,7 +53,8 @@
                 dom: 'Bfrtip',
                 columns: define_columns(),
                 data: records,
-                buttons: buttons    
+                buttons: buttons,
+                order: order,
             })
         } else {
             let tr = document.createElement('tr');

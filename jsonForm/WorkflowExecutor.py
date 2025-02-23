@@ -1,6 +1,5 @@
 import json
 from django.db.models import Q
-from .models import TaskInstance
 from base import constants
 from base.util import get_model_class
 
@@ -22,6 +21,7 @@ class WorkflowExecutor:
         """
         application = case.form.application
         workflow_instance = case.workflow_instance
+        TaskInstance = case.get_task_instances_model()  # Get the TaskInstance model from the Case model
         request_data = {}
 
         if current_task and current_task.task_type == constants.TASK_TYPE_AUTO:
@@ -60,6 +60,7 @@ class WorkflowExecutor:
             None
         """
         case.task_instances.clear()  # Clear existing task instances
+        TaskInstance = case.get_task_instances_model()
         Permission = get_model_class('userManagement', 'Permission')
         pers = []  # List to store Permission objects
         if task.assign_to_role is not None:
@@ -77,7 +78,8 @@ class WorkflowExecutor:
             if task.assign_to_role is not None and task.assign_to_role.name == constants.ROLE_CASE_OWNER:
                 task_instance = TaskInstance.objects.create(task=task, assign_to=per, workflow_instance=workflow_instance, assign_to_user=case.created_by)  # Assign to case owner
             else:
-                task_instance = TaskInstance.objects.create(task=task, assign_to=per, workflow_instance=workflow_instance)  # Assign to Permission
+                team_support = per.team.first_support() if per.team else None  # Get first support user in team
+                task_instance = TaskInstance.objects.create(task=task, assign_to=per, workflow_instance=workflow_instance, assign_to_user=team_support)  # Assign to Permission
             task_instance.save()
             case.task_instances.add(task_instance)  # Add task instance to case
         return None

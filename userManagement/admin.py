@@ -186,10 +186,11 @@ class ExistedMenuInline(admin.TabularInline):
     verbose_name_plural = 'Existed Menus'
 
 class AppMenuAdmin(BaseAuditAdmin):
-    list_display = ['key', 'label', 'control_type', 'link','parent_app_menu', 'is_active', 'menu_level']
-    list_filter = ['menu_level','is_active', 'control_type']
+    list_display = ['application_menu_display', 'key', 'label', 'control_type', 'link','parent_app_menu', 'is_active', 'menu_level']
+    list_filter = [ 'menu_level','is_active', 'control_type']
     search_fields = ['key','label', 'link']
     inlines = (CreateMenuline, ExistedMenuInline)
+    readonly_fields = ('application_menu_display',)  # Make it read-only in the detail view
     
     def get_form(self, request, obj=None, **kwargs):
         """
@@ -212,6 +213,18 @@ class AppMenuAdmin(BaseAuditAdmin):
         if obj is not None:  # obj will be None when creating a new object
             return super().get_inline_instances(request, obj)
         return []  # Return an empty list, which means no inlines will be shown for creation
+
+
+    @admin.display(description="Application Menu")
+    def application_menu_display(self, obj):
+        # 'obj' is the model instance
+        parent = obj.parent_app_menu
+        label = obj.label
+        while parent:  # Assuming 0 is the top level menu
+            label = '%s[L%s]::%s'%(parent.label, parent.menu_level,label) if parent.menu_level !=0 else '%s::%s'%(parent.label,label)
+            parent = parent.parent_app_menu
+        return label  # HTML is allowed, but escape if needed (see below)
+
 
 admin.site.register(AppMenu, AppMenuAdmin)
 

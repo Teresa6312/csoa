@@ -70,14 +70,16 @@
                             field_value.textContent = '--';
                         }
                         let field_lable_strong = document.createElement('strong');
-                        field_lable_strong.textContent = value['label']
-                        field_lable.append(field_lable_strong)
                         if (value['helptext'] !=null && value['helptext']!= '' && value['helptext'] !== undefined){
+                            field_lable_strong.textContent = '[' + value['label'] + '] '
+                            field_lable.append(field_lable_strong)
                             field_lable.append(value['helptext'])
                             field_block.classList="w3-container w3-row"
                             field_lable.classList = "w3-large w3-bold w3-padding-small"
                             field_value.classList = "w3-padding-small w3-border"
                         } else {
+                            field_lable_strong.textContent = value['label']
+                            field_lable.append(field_lable_strong)
                             field_block.classList="w3-container w3-half w3-row"
                             field_lable.classList = "w3-large w3-bold w3-padding-small w3-third"
                             field_value.classList = "w3-rest w3-padding-small w3-border"

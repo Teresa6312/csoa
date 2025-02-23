@@ -1,0 +1,259 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Form Schema",
+    "type": "object",
+    "patternProperties": {
+        "^[a-zA-Z0-9_]+$": {
+            "type": "object",
+            "properties": {
+                "label": { "type": "string" },
+                "input": { "type": "string", "enum": ["select", "select_multiple", "string", "integer", "decimal", "list", "file", "date"] },
+                "validator": { "type": "string" },
+                "default": { "type": ["string", "number"] },
+                "choices": { "type": ["string", "array"], "items": { "type": "string" } },
+                "choices_map": {
+                    "type": "object",
+                    "properties": {
+                        "map_key": {"type": "string"},
+                        "map_name": {"type": "string"},
+                        "connected_fields": {"type": "array", "items": { "type": "string" } }
+                    },
+                    "required": ["map_key", "map_name", "connected_fields"]
+                },
+                "required": { "type": "boolean" },
+                "length": { "type": "integer" },
+                "max_digits": { "type": "integer" },
+                "decimal_places": { "type": "integer" },
+                "to_display_conditions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "field": { "type": "string" },
+                            "operator": { "type": "string", "enum": ["AND", "OR"] },
+                            "conditions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": { "type": "string", "enum": ["Array Operators", "String Operators", "Comparison Operators"] },
+                                        "comparison_operator": {
+                                            "type": "string",
+                                            "enum": [
+                                                "==", "!=", ">", ">=", "<", "<=", "in",
+                                                "includes", "startsWith", "endsWith", "equals", "notEquals",
+                                                "-includes", "-excludes", "excludes", "-any", "any", "all", "-all", "equal"
+                                            ]
+                                        },
+                                        "compare_value": { "type": ["array", "string", "number", "boolean", "null"] }
+                                    },
+                                    "required": ["type", "comparison_operator", "compare_value"]
+                                }
+                            }
+                        },
+                        "required": ["field", "operator", "conditions"]
+                    }
+                },
+                "to_validate_conditions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "field": { "type": "string" },
+                            "operator": { "type": "string", "enum": ["AND", "OR"] },
+                            "conditions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": { "type": "string", "enum": ["Array Operators", "String Operators", "Comparison Operators"] },
+                                        "comparison_operator": {
+                                            "type": "string",
+                                            "enum": ["==", "!=", ">", ">=", "<", "<="]
+                                        },
+                                        "compare_value": { "type": ["array", "string", "number", "boolean", "null"] }
+                                    },
+                                    "required": ["type", "comparison_operator", "compare_value"]
+                                }
+                            },
+                            "rules": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": { "type": "string", "enum": ["range", "regex", "custom"] },
+                                        "value": { "type": ["object", "string", "number", "array"] }
+                                    },
+                                    "required": ["type", "value"]
+                            	}
+                            }
+                        },
+                        "required": ["field", "operator", "conditions", "rules"]
+                    }
+                },
+                "fields": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^[a-zA-Z0-9_]+$": {
+                            "$ref": "#/definitions/fieldDefinition"
+                        }
+                    }
+                }
+            },
+            "required": ["label", "input"],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "input": { "enum": ["select", "select_multiple"] } }
+                    },
+                    "then": { "required": ["choices"] }
+                },
+                {
+                    "if": {
+                        "properties": { "input": { "enum": ["list"] } }
+                    },
+                    "then": { "required": ["fields"] }
+                },
+                {
+                    "if": {
+                        "properties": { "input": { "enum": ["string"] } }
+                    },
+                    "then": { "required": ["length"] }
+                },
+                {
+                    "if": {
+                        "properties": { "input": { "enum": ["decimal"] } }
+                    },
+                    "then": { "required": ["max_digits", "decimal_places"] }
+                }
+            ]
+        }
+    },
+    "definitions": {
+        "fieldDefinition": {
+            "type": "object",
+            "properties": {
+                "label": { "type": "string" },
+                "validator": { "type": "string" },
+                "default": { "type": ["string", "number"] },
+                "input": { "type": "string", "enum": ["select", "select_multiple", "string", "integer", "decimal", "list", "file", "date"] },
+                "choices": { "type": ["string", "array"], "items": { "type": "string" } },
+                "choices_map": {
+                    "type": "object",
+                    "properties": {
+                        "map_key": {"type": "string"},
+                        "map_name": {"type": "string"},
+                        "connected_fields": {"type": "array", "items": { "type": "string" } }
+                    },
+                    "required": ["map_key", "map_name", "connected_fields"]
+                },
+                "required": { "type": "boolean" },
+                "length": { "type": "integer" },
+                "max_digits": { "type": "integer" },
+                "decimal_places": { "type": "integer" },
+                "to_display_conditions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "field": { "type": "string" },
+                            "operator": { "type": "string", "enum": ["AND", "OR"] },
+                            "conditions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": { "type": "string", "enum": ["Array Operators", "String Operators", "Comparison Operators"] },
+                                        "comparison_operator": {
+                                            "type": "string",
+                                            "enum": [
+                                                "==", "!=", ">", ">=", "<", "<=", "in",
+                                                "includes", "startsWith", "endsWith", "equals", "notEquals",
+                                                "-includes", "-excludes", "excludes", "-any", "any", "all", "-all", "equal"
+                                            ]
+                                        },
+                                        "compare_value": { "type": ["array", "string", "number", "boolean", "null"] }
+                                    },
+                                    "required": ["type", "comparison_operator", "compare_value"]
+                                }
+                            }
+                        },
+                        "required": ["field", "operator", "conditions"]
+                    }
+                },
+                "to_validate_conditions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "field": { "type": "string" },
+                            "operator": { "type": "string", "enum": ["AND", "OR"] },
+                            "conditions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": { "type": "string", "enum": ["Array Operators", "String Operators", "Comparison Operators"] },
+                                        "comparison_operator": {
+                                            "type": "string",
+                                            "enum": ["==", "!=", ">", ">=", "<", "<="]
+                                        },
+                                        "compare_value": { "type": ["array", "string", "number", "boolean", "null"] }
+                                    },
+                                    "required": ["type", "comparison_operator", "compare_value"]
+                                }
+                            },
+                            "rules": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": { "type": "string", "enum": ["range", "regex", "custom"] },
+                                        "value": { "type": ["object", "string", "number", "array"] }
+                                    },
+                                    "required": ["type", "value"]
+                            	}
+                            }
+                        },
+                        "required": ["field", "operator", "conditions", "rules"]
+                    }
+                },
+                "fields": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^[a-zA-Z0-9_]+$": {
+                            "$ref": "#/definitions/fieldDefinition"
+                        }
+                    }
+                }
+            },
+            "required": ["label", "input"],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "input": { "enum": ["select", "select_multiple"] } }
+                    },
+                    "then": { "required": ["choices"] }
+                },
+                {
+                    "if": {
+                        "properties": { "input": { "enum": ["list"] } }
+                    },
+                    "then": { "required": ["fields"] }
+                },
+                {
+                    "if": {
+                        "properties": { "input": { "enum": ["string"] } }
+                    },
+                    "then": { "required": ["length"] }
+                },
+                {
+                    "if": {
+                        "properties": { "input": { "enum": ["decimal"] } }
+                    },
+                    "then": { "required": ["max_digits", "decimal_places"] }
+                }
+            ]
+        }
+    }
+}

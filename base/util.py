@@ -1,4 +1,5 @@
 import json
+from jsonschema import validate, ValidationError
 import uuid
 from datetime import date, datetime
 from django.core.mail import EmailMessage
@@ -23,6 +24,9 @@ from django.shortcuts import get_object_or_404
 from functools import reduce
 from django.core.paginator import Paginator
 from django.http import Http404
+from .cache import global_cache_decorator
+from django.conf import settings
+# from django.core.serializers.json import DjangoJSONEncoder as CustomJSONEncoder # for datetime serialization
 
 logger = logging.getLogger('django')
 
@@ -34,6 +38,8 @@ class CustomJSONEncoder(json.JSONEncoder):
             return obj.strftime('%m/%d/%Y')
         if isinstance(obj, uuid.UUID):
             return str(obj)
+        if isinstance(obj, bool):  # Check for standard booleans This one doesn't work for some reason
+            return 'Yes' if obj else 'No'
         if isinstance(obj, Decimal):
             return float(obj)
         if isinstance(obj, Promise):
@@ -159,6 +165,20 @@ def get_related_model_class(model_class, related_name):
             return field.related_model
     # Return None if no matching related_name is found
     return None
+
+def get_related_model_related_names(model_class, relate_model_class):
+    # Iterate over all fields in the model
+    related_names = []
+    for field in model_class._meta.get_fields():
+        # Check if the field has a related name that matches the given related_name
+        if field.related_model == relate_model_class:
+            # Return the related model class
+            if hasattr(field, 'related_name'):
+                related_names.append(field.related_name)
+            elif hasattr(field, 'related_query_name'):
+                related_names.append(field.related_query_name)
+    # Return None if no matching related_name is found
+    return related_names
 
 #  in used for datatables.js search
 def extract_datatables_search_panes_parameters(post_data):
@@ -313,3 +333,92 @@ def get_menu_key_in_list(sub_menu: list, parent_key=None):
         if len(menu.get('sub_menu', []))>0:
             result += get_menu_key_in_list(new_sub_menu, key)
     return result
+
+import json
+from django.conf import settings
+
+# def load_form_config():
+#     config_path = settings.BASE_DIR / 'reference' / 'form_template.json'
+#     with open(config_path, 'r', encoding='utf-8') as f:
+#         return json.load(f)
+
+def validate_form_data(form_data, config):
+    errors = {}
+    
+    # 字段级验证
+    for field_id, field_config in config['fields'].items():
+        value = form_data.get(field_id)
+        
+        # 必填验证
+        if field_config.get('required') and not value:
+            errors[field_id] = "此字段为必填项"
+            
+        # 类型验证
+        if field_config['type'] == 'number' and not value.isdigit():
+            errors[field_id] = "必须为有效数字"
+            
+    # 跨字段验证
+    for rule in config.get('validation_rules', {}).values():
+        if rule['type'] == 'range':
+            source_value = form_data.get(rule['depends_on'])
+            target_value = form_data.get(rule['target'])
+            min_val = rule['rules'][source_value]['min']
+            max_val = rule['rules'][source_value]['max']
+            
+            if not (min_val <= float(target_value) <= max_val):
+                errors[rule['target']] = f"有效范围：{min_val}-{max_val}"
+    
+    return errors
+
+
+def load_schema_from_file(schema_file_path):
+    """Loads a JSON schema from a file.
+
+    Args:
+        schema_file_path: The path to the JSON schema file.
+
+    Returns:
+        The JSON schema as a Python dictionary, or None if an error occurs.
+    """
+    try:
+        path = "%s%s" % (settings.BASE_DIR, schema_file_path)  # Add encoding for potential issues
+        logger.debug(f"loading schema: {path}")
+        with open(path, 'r', encoding='utf-8') as f:  # Add encoding for potential issues
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logger.debug(f"Error loading schema: {e}")
+        logger.error(f"Error loading schema: {e}")
+        return None
+
+def validate_json_with_schema(json_data, schema):
+    """Validates a JSON object against a JSON schema.
+
+    Args:
+        json_data: The JSON object to validate (as a Python dictionary).
+        schema: The JSON schema (as a Python dictionary).
+
+    Returns:
+        None if the JSON is valid.
+        A string containing the validation error message if invalid.
+    """
+    try:
+        validate(instance=json_data, schema=schema)
+        return ''  # JSON is valid
+    except ValidationError as e:
+        return e.message  # Return the validation error message
+
+@global_cache_decorator(cache_key="normalized_url", timeout = settings.CACHE_TIMEOUT_L3)
+def normalized_url(path):
+    path = path.lower() if path is not None else ''
+    new_path = ''
+    if path.startswith('/api'):
+        path = path.replace('/api', '')
+    if path.endswith('-filter'):
+        path_split = path.split("/")
+        for p in path_split:
+            if not p.endswith('-filter') and p != '':
+                new_path = f'{new_path}/{p}'
+
+    if new_path == '':
+        new_path = path
+    return new_path

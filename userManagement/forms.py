@@ -179,6 +179,7 @@ class AppMenuInlineCreateForm(forms.ModelForm):
                 menu_level = instance.menu_level + 1,
                 key = 'todoList',
                 label = 'To-do List',
+                link= f'/app/{self.parent_instance.key}/my-cases/todoList',
                 parent_app_menu = instance,
                 is_active = True
             )
@@ -186,6 +187,7 @@ class AppMenuInlineCreateForm(forms.ModelForm):
                 menu_level = instance.menu_level + 1,
                 key = 'ongoingList',
                 label = 'Ongoing List',
+                link= f'/app/{self.parent_instance.key}/my-cases/ongoingList',
                 parent_app_menu = instance,
                 is_active = True
             )
@@ -193,6 +195,7 @@ class AppMenuInlineCreateForm(forms.ModelForm):
                 menu_level = instance.menu_level + 1,
                 key = 'completedList',
                 label = 'Completed List',
+                link= f'/app/{self.parent_instance.key}/my-cases/completedList',
                 parent_app_menu = instance,
                 is_active = True
             )

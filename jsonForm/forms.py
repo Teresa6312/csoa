@@ -1,16 +1,17 @@
 from django import forms
 import json
 from django.forms import formset_factory
-from base.util_model import get_select_choices
+from base.util_model import get_select_choices, get_select_choices_from_map
 from base.util import convert_date_format
 from base.validators import get_validator
-from base.forms import MultipleFileField, CustomClearableFileInput
+from base.forms import MultipleFileField, MultipleFileInput, CustomClearableFileInput
 from userManagement.models import CustomUser, Team, AppMenu, Permission, Department
-from .models import FormTemplate, Workflow, Task, TaskInstance, DecisionPoint
+from .models import FormTemplate, Workflow, Task, TaskInstance, DecisionPoint, FormSection
 from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 from django.db.models import Q
 from base.util_files import handle_uploaded_file
+from django_jsonform.forms.fields import JSONFormField
 from base import constants
 
 import logging
@@ -48,8 +49,8 @@ def create_dynamic_form_section(json_str, form_section_id=None, instance=None):
 	class DynamicFormSection(forms.Form):
 		nested_formsets = {}
 		nested_formset_fields = {}
-		def __init__(self, *args, **kwargs):
-			super().__init__(*args, **kwargs)
+		def __init__(self,data=None, files=None,  *args, **kwargs):
+			super().__init__(data=data, files=files, *args, **kwargs)
 			uploaded_files = kwargs.get('files', None) 
 			initial = self.initial or kwargs.get('initial', {}) if instance is None else instance
 			if form_section_id is not None:
@@ -68,6 +69,7 @@ def create_dynamic_form_section(json_str, form_section_id=None, instance=None):
 				field_hidden = field_props.get('hidden', False)
 				field_max_digits = field_props.get('max_digits', 10)
 				field_decimal_places = field_props.get('decimal_places', 2)
+				choices_map = field_props.get('choices_map', {})
 				field_choices = field_props.get('choices', [])
 				field_validator = field_props.get('validator', None)
 				field_helptext = field_props.get('helptext', None)
@@ -76,10 +78,14 @@ def create_dynamic_form_section(json_str, form_section_id=None, instance=None):
 					validator = get_validator(field_validator)
 					if validator is not None:
 						validators.append(validator)
-				if isinstance(field_choices, str):
+				if choices_map != {}:
+					new_field_choices = get_select_choices_from_map(choices_map.get('map_name'), choices_map.get('map_key') )
+					if new_field_choices is not None and len(new_field_choices) > 0:
+						field_choices = new_field_choices
+				elif isinstance(field_choices, str):
 					field_choices = get_select_choices(field_choices)
 				elif isinstance(field_choices, list):
-					new_field_choices = []
+					new_field_choices = [('', '---Select---')]
 					for f in field_choices:
 						new_field_choices.append((f,f))
 					field_choices = new_field_choices
@@ -159,8 +165,8 @@ def create_dynamic_form_section(json_str, form_section_id=None, instance=None):
 						field_required, 
 						instance=field_default, 
 						prefix=field_name,
-						post_data=kwargs.get('data', None),
-						post_file=kwargs.get('files', None)
+						post_data=data,
+						post_file=files
 						)
 					self.nested_formsets[field_name] = nested_formset
 					self.nested_formset_fields[field_name] = {
@@ -170,17 +176,17 @@ def create_dynamic_form_section(json_str, form_section_id=None, instance=None):
 					}
 				elif field_type == 'file':
 					prefix = kwargs.get('prefix', None)
-					if uploaded_files is not None:
+					if files is not None:
 						file_key =  field_name if prefix is None else f"{prefix}-{field_name}"
-						if uploaded_files.get(file_key) is not None :
-							field_default = uploaded_files.get(file_key)
+						if files.get(file_key) is not None :
+							field_default = files.get(file_key)
 					if field_props.get('multiple', False):
 						self.fields[field_name] = MultipleFileField(
 							label=field_label,
 							help_text=field_helptext,
 							required=field_required,
 							initial= field_default,
-							widget = CustomClearableFileInput(original_required=field_required)
+							widget = MultipleFileInput(original_required=field_required)
 						)
 					else:
 						self.fields[field_name] = forms.FileField(
@@ -343,56 +349,173 @@ class TaskInlineFormSet(BaseInlineFormSet):
 									"Either 'assign to' or 'assign to role' field should contain value"
 								)
 
-class TaskInstanceForm(forms.ModelForm):
-	task_str = forms.CharField(label='Task')
-	assign_to_str = forms.CharField(label='Assign to')
-	add_files= MultipleFileField( label='Files', required=False )
-	class Meta:
-		model = TaskInstance
-		fields = ['task_str', 'assign_to_str', 'assign_to_user', 'decision_point', 'comment', 'add_files']
+def create_dynamic_task_instance_form(TaskInstanceClass):
 
-	def __init__(self, *args, **kwargs):
-		self.request = kwargs.pop('request', None)
-		
-		super(TaskInstanceForm, self).__init__(*args, **kwargs)
-		if self.instance.id:
-			task = TaskInstance.objects.get(id = self.instance.id)
-			self.fields['task_str'].initial = task.task
-			assign_to = task.assign_to
-			text = ''
-			if assign_to.team is not None:
-				text = f'{assign_to.team.full_name}'
-			elif assign_to.department is not None:
-				text = f'{assign_to.department.full_name}'
-			elif assign_to.company is not None:
-				text = f'{assign_to.company.full_name}'
-			text = f'{assign_to.role.name}({text})'
-			self.fields['assign_to_str'].initial = text
-			self.fields['task_str'].widget.attrs['readonly'] = True
-			self.fields['assign_to_str'].widget.attrs['readonly'] = True
-			self.fields['decision_point'].required = True
-			self.fields['decision_point'].queryset = DecisionPoint.objects.filter(task=task.task)
+	class TaskInstanceForm(forms.ModelForm):
+		task_str = forms.CharField(label='Task')
+		assign_to_str = forms.CharField(label='Assign to')
+		add_files= MultipleFileField( label='Files', required=False )
+		class Meta:
+			model = TaskInstanceClass
+			fields = ['task_str', 'assign_to_str', 'assign_to_user', 'decision_point', 'comment', 'add_files']
+
+		def __init__(self, *args, **kwargs):
+			self.request = kwargs.pop('request', None)
 			
-			if self.request.user.is_superuser:
-				self.fields['assign_to_user'].required = True
-				self.fields['assign_to_user'].queryset = CustomUser.objects.filter(permissions=assign_to, is_active=True)
-			else:
-				self.fields['assign_to_user'].widget = forms.HiddenInput()
-				self.fields['assign_to_user'].initial = CustomUser.objects.get(id=self.request.user.id)
+			super(TaskInstanceForm, self).__init__(*args, **kwargs)
+			if self.instance.id:
+				task = TaskInstanceClass.objects.get(id = self.instance.id)
+				self.fields['task_str'].initial = task.task
+				assign_to = task.assign_to
+				text = ''
+				if assign_to.team is not None:
+					text = f'{assign_to.team.full_name}'
+				elif assign_to.department is not None:
+					text = f'{assign_to.department.full_name}'
+				elif assign_to.company is not None:
+					text = f'{assign_to.company.full_name}'
+				text = f'{assign_to.role.name}({text})'
+				self.fields['assign_to_str'].initial = text
+				self.fields['task_str'].widget.attrs['readonly'] = True
+				self.fields['assign_to_str'].widget.attrs['readonly'] = True
+				self.fields['decision_point'].required = True
+				self.fields['decision_point'].queryset = DecisionPoint.objects.filter(task=task.task)
+				
+				if self.request.user.is_superuser:
+					self.fields['assign_to_user'].required = True
+					self.fields['assign_to_user'].queryset = CustomUser.objects.filter(permissions=assign_to, is_active=True)
+				else:
+					self.fields['assign_to_user'].widget = forms.HiddenInput()
+					self.fields['assign_to_user'].initial = CustomUser.objects.get(id=self.request.user.id)
 
-			self.fields['comment'].widget=forms.Textarea(attrs={'placeholder': 'Please provide your comments'})
+				self.fields['comment'].widget=forms.Textarea(attrs={'placeholder': 'Please provide your comments'})
 
-		for field_name, field in self.fields.items():
-			if field.required:
-				self.fields[field_name].label = self.fields[field_name].label + '*'
+			for field_name, field in self.fields.items():
+				if field.required:
+					self.fields[field_name].label = self.fields[field_name].label + '*'
 
-	def save(self, commit=True):
-		instance = super().save(commit=False)
-		uploaded_files = self.cleaned_data.get('add_files')
-		if uploaded_files:
-			file_list = handle_uploaded_file(self.request,uploaded_files, format='file')
-			for f in file_list:
-				instance.files.add(f)
-		instance.is_active = False
-		instance.assign_to_user = self.request.user
-		return super().save(commit=commit)
+		def save(self, commit=True):
+			instance = super().save(commit=False)
+			uploaded_files = self.cleaned_data.get('add_files')
+			if uploaded_files:
+				file_list = handle_uploaded_file(self.request,uploaded_files, format='file')
+				for f in file_list:
+					instance.files.add(f)
+			instance.is_active = False
+			instance.assign_to_user = self.request.user
+			return super().save(commit=commit)
+	return TaskInstanceForm
+
+
+# from .models import CaseData
+# class CaseDataForm(forms.ModelForm):
+# 	# Explicitly declare the JSONFormField with the schema
+# 	# section_data = JSONFormField()
+# 	section_data = JSONFormField(schema={
+# 		"type": "object",
+# 		"properties": {
+# 			"attachment": {
+# 			"title": "Attachment",
+# 			"type": "string",
+# 			"format": "binary"
+# 			},
+# 			"country": {
+# 			"title": "国家"
+# 			},
+# 			"country2": {
+# 			"title": "国家2"
+# 			},
+# 			"specialTerms": {
+# 			"title": "Special Terms excludes 中国",
+# 			"type": "string",
+# 			"maxLength": 500
+# 			},
+# 			"specialTerms3": {
+# 			"title": "Special Terms3 Array includes 日本",
+# 			"type": "string",
+# 			"maxLength": 500
+# 			},
+# 			"specialTerms2": {
+# 			"title": "Special Terms2 value all in [中国, 美国]",
+# 			"type": "string",
+# 			"maxLength": 500
+# 			},
+# 			"province": {
+# 			"title": "省份"
+# 			},
+# 			"city": {
+# 			"title": "City"
+# 			},
+# 			"gender": {
+# 			"title": "性别"
+# 			},
+# 			"age": {
+# 			"title": "年龄",
+# 			"type": "number",
+# 			"maximum": 999,
+# 			"minimum": -1000,
+# 			"multipleOf": 1
+# 			},
+# 			"contractAmount": {
+# 			"title": "Contract Amount",
+# 			"type": "number",
+# 			"maximum": 9999999999.99,
+# 			"minimum": -10000000000,
+# 			"multipleOf": 0.01
+# 			},
+# 			"documentName": {
+# 			"title": "Document Name",
+# 			"type": "string",
+# 			"maxLength": 500
+# 			},
+# 			"contractRemark": {
+# 			"title": "Contract Remarks",
+# 			"type": "string",
+# 			"maxLength": 1000
+# 			},
+# 			"attachments": {
+# 			"title": "Attachment(s)",
+# 			"type": "array",
+# 			"items": {
+# 				"type": "object",
+# 				"properties": {
+# 				"attachment": {
+# 					"title": "Attachment",
+# 					"type": "string",
+# 					"format": "binary"
+# 				},
+# 				"remark": {
+# 					"title": "Remark",
+# 					"type": "string",
+# 					"maxLength": 500
+# 				}
+# 				},
+# 				"additionalProperties": False,
+# 				"required": [
+# 				"attachment"
+# 				]
+# 			}
+# 			}
+# 		},
+# 		"additionalProperties": False,
+# 		"required": [
+# 			"attachment",
+# 			"country",
+# 			"country2",
+# 			"province",
+# 			"city",
+# 			"gender",
+# 			"age",
+# 			"contractAmount",
+# 			"documentName",
+# 			"attachments"
+# 		]
+# 		})
+
+# 	class Meta:
+# 		model = CaseData
+# 		fields = '__all__'
+
+# 	def __init__(self, *args, **kwargs):
+# 		super().__init__(*args, **kwargs)
+# 		# self.fields['section_data'].schema =  self.instance.form_section.json_template_schema if self.instance and self.instance.form_section else {}

@@ -7,11 +7,12 @@ from .forms import FormTemplateForm, FormSectionInlineFormSet, TaskForm, TaskInl
 
 class FormSectionInline(admin.StackedInline):
 	model = FormSection
+	# form = FormSectionForm  # Use the custom form
 	formset = FormSectionInlineFormSet  # Attach the custom formset
 	can_delete = False
 	extra = 1
 	verbose_name_plural = 'Sections'
-	
+
 class FormTemplateAdmin(BaseAuditAdmin):
 	inlines = (FormSectionInline, )
 	form = FormTemplateForm
@@ -19,6 +20,10 @@ class FormTemplateAdmin(BaseAuditAdmin):
 	list_display = ['code', 'name', 'description','owner_company', 'owner_department', 'owner_team', 'application', 'process_department', 'process_team', 'is_active']
 	list_filter = ['owner_company', 'owner_department', 'owner_team', 'application', 'process_department', 'process_team', 'is_active']
 	search_fields = ['code', 'name', 'description']
+
+	# class Media:
+	# 	js = ('django_jsonform/django-jsonform.js',)
+	# 	css = {'all': ('django_jsonform/django-jsonform.css',)}
 admin.site.register(FormTemplate, FormTemplateAdmin)
 
 class FormSectionAdmin(BaseAuditAdmin):
@@ -95,7 +100,7 @@ class TaskInstanceAdmin(BaseAuditAdmin):
 		return case.id
 	search_fields = ['id', 'comment']
 	list_filter = ['decision_point', 'task']
-	list_display = ['id', 'case_id','workflow_instance', 'task', 'assign_to','assign_to_user', 'decision_point', 'comment', 'updated_at','is_active']
+	list_display = ['id', 'workflow_instance', 'task', 'assign_to','assign_to_user', 'decision_point', 'comment', 'updated_at','is_active']
 	ordering = ['-updated_at']
 	list_per_page = 20  # Number of records to display per page
 admin.site.register(TaskInstance, TaskInstanceAdmin)
@@ -103,3 +108,15 @@ admin.site.register(TaskInstance, TaskInstanceAdmin)
 class WorkflowInstanceAdmin(BaseAuditAdmin):
     list_display = ['id', 'workflow', 'is_active']
 admin.site.register(WorkflowInstance, WorkflowInstanceAdmin)
+
+
+# from .models import  CaseData
+# from .forms import CaseDataForm
+# class CaseDataAdmin(BaseAuditAdmin):
+# 	form = CaseDataForm
+# 	list_display = ['id', 'case','form_section']
+# 	class Media:
+# 		js = ('django_jsonform/django-jsonform.js',)
+# 		css = {'all': ('django_jsonform/django-jsonform.css',)}
+# admin.site.register(CaseData, CaseDataAdmin)
+

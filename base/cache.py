@@ -3,10 +3,11 @@ from functools import wraps
 from django.core.cache import cache
 import inspect
 import logging
+from django.conf import settings
 
 logger = logging.getLogger('django')
 
-def global_cache_decorator(cache_key, timeout=3600):
+def global_cache_decorator(cache_key, timeout=settings.CACHE_TIMEOUT_DEFAULT):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -33,7 +34,7 @@ def global_cache_decorator(cache_key, timeout=3600):
         return wrapper
     return decorator
 
-def global_class_cache_decorator(cache_key, timeout=3600):
+def global_class_cache_decorator(cache_key, timeout=settings.CACHE_TIMEOUT_DEFAULT):
     def decorator(func):
         @classmethod
         @wraps(func)
@@ -62,7 +63,7 @@ def global_class_cache_decorator(cache_key, timeout=3600):
         return wrapper
     return decorator
 
-def global_instance_cache_decorator(cache_key, timeout=3600):
+def global_instance_cache_decorator(cache_key, timeout=settings.CACHE_TIMEOUT_DEFAULT):
     def decorator(func):
         @wraps(func)
         def wrapper(record, *args, **kwargs):  # cls will be passed from @classmethod
@@ -89,17 +90,3 @@ def global_instance_cache_decorator(cache_key, timeout=3600):
             return data
         return wrapper
     return decorator
-
-# def global_cache_decorator(cache_key, timeout=300):
-#     def decorator(func):
-#         @classmethod
-#         @wraps(func)
-#         def cls_method(cls, *args, **kwargs):  # cls will be the class itself
-#             # Use a cache key to ensure uniqueness
-#             data = cache.get(cache_key)
-#             if data is None:
-#                 data = func(cls, *args, **kwargs)  # Call the original function
-#                 cache.set(cache_key, data, timeout)
-#             return data
-#         return cls_method
-#     return decorator

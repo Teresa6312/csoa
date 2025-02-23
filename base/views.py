@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect
 from userManagement.models import CustomUser, Permission, AppMenu
-from .util import CustomJSONEncoder, no_permission_redirect
+from .util import CustomJSONEncoder, no_permission_redirect, get_object_or_redirect
 from django.http import HttpResponseRedirect, HttpResponse
 from .models import FileModel
 import mimetypes
 from django.contrib import messages
-from .util import get_object_or_redirect
 import json
 
 

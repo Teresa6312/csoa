@@ -187,3 +187,46 @@ table th {
 table td {
     font-size: 11px;
 }
+.menu-icon {
+    cursor: pointer; /* Make the icon look clickable */
+}
+
+.menu-list {
+    display: none; /* Initially hide the menu */
+    position: absolute; /* Position the menu relative to the container */
+    background-color: #fff; /* Example background color */
+    border: 1px solid #ccc; /* Example border */
+    z-index: 1; /* Ensure it's above other content */
+    min-width: 250px; /* Minimum width for the menu */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Optional shadow */
+    max-height: 90%;
+    overflow-y: auto; /* Enable vertical scrolling if needed */
+}
+
+.menu-list a {
+    display: block; /* Make each link a block element */
+    padding: 10px; /* Example padding */
+    text-decoration: none; /* Remove underlines from links */
+}
+
+.menu-list a:hover {
+    background-color: #f0f0f0; /* Example hover background color */
+}
+
+/* Show the menu on hover */
+.menu-container:hover .menu-list {
+    display: block;
+}
+.form-input-container label, .formset-form label {
+    display: block;
+}
+.form-input-container input, .form-input-container select, .formset-form input, .formset-form select {
+    width: 100%;
+}
+.form-input-container input[required], .form-input-container select[required], .formset-form input[required], .formset-form select[required], .form-input-container textarea[required] , .formset-form textarea [required]{ /* Attribute selector (alternative) */
+    border: 2px solid black;
+}
+.form-input-container textarea , .formset-form textarea{
+    height: 6cap;
+    width: 100%;
+}

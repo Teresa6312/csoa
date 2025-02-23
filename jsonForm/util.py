@@ -2,11 +2,12 @@ import json
 from .forms import create_dynamic_form_section, create_dynamic_form_section_formset, CaseForm
 from base.util import CustomJSONEncoder
 from base.util_model import get_audit_history, get_audit_history_by_instance
-from base.util_files import process_form_files, process_formset_files
-from .models import FormTemplate, TaskInstance
+from base.util_files import process_form_files, process_formset_files, handle_temp_file
+from .models import FormTemplate
 from userManagement.models import Team
 from django.contrib import messages
 import logging
+from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 
 logger = logging.getLogger('django')
 
@@ -29,11 +30,10 @@ def create_case_view(request, form: FormTemplate, app_id=None):
             case_form = CaseForm.create_case_form(app_id, request.user, request.POST,request.FILES, prefix='case_form')
             if not case_form.is_valid():
                 case_form_is_valid = False
-                message = f"{message}[{case_form.errors}]"
             else:
                 case_team = case_form.cleaned_data.get('case_team', None)
                 case_department = case_form.cleaned_data.get('case_department', None)
-
+            # uploaded_files = handle_file_upload(request)
             section_form = DynamicFormSection(request.POST, request.FILES, prefix=f'form_section_id_{s.id}')
             if section_form.is_valid():
                 # Process the files
@@ -41,10 +41,7 @@ def create_case_view(request, form: FormTemplate, app_id=None):
                 form_data =  section_form.cleaned_data
             else:
                 section_forms_is_valid = False
-                message = f"{message}[{section_form.errors}]"
             for field_name in DynamicFormSection.nested_formset_fields:
-                # DynamicFormSectionFormSet = create_dynamic_form_section_formset(DynamicFormSection.nested_formset_fields[field_name]['fields'])
-                # nested_formset = DynamicFormSectionFormSet(request.POST, request.FILES, prefix=field_name)
                 nested_formset = create_dynamic_form_section_formset(
                     DynamicFormSection.nested_formset_fields[field_name]['fields'],
                     prefix=field_name,
@@ -54,7 +51,6 @@ def create_case_view(request, form: FormTemplate, app_id=None):
                 field_data = []
                 if not nested_formset.is_valid():
                     section_formsets_valid = False
-                    message = f"{message}[{nested_formset.errors}]"
                 else:
                     for formset in nested_formset:
                         if formset.cleaned_data and not formset.cleaned_data.get('DELETE', False):
@@ -64,7 +60,7 @@ def create_case_view(request, form: FormTemplate, app_id=None):
                         section_formsets_data[field_name] = field_data
                     elif DynamicFormSection.nested_formset_fields[field_name]['required']:
                         section_formsets_valid = False
-                        message = f"{message}[{field_name}: cannot be empty]"
+                        messages.warning(request, f"{field_name}: cannot be empty")
                 section_form.nested_formsets[field_name] = nested_formset
             if form_data is not None:
                 for a in section_formsets_data:
@@ -98,15 +94,19 @@ def create_case_view(request, form: FormTemplate, app_id=None):
             for section_datas in instance.case_data_case.all():
                 section_datas.delete()
             instance.delete()
+            # handle_file_upload(request)
+            messages.error(request, f"Please re-upload the files and resubmit the form.")
             return {'form': form, 'section_forms': section_forms, 'case_form': case_form, 'error': e}
         if request.POST.get('action') == 'submit':
             instance.is_submited = True
         instance.save()
         messages.info(request, f"Case [{instance.id}] {instance.status}")
+        # clear_session_files(request)
         return {}
     elif request.method == 'POST':
-        logger.debug(f"Initial data valid {case_form_is_valid}; Main form valid {section_forms_is_valid}; sub form valid: {section_formsets_valid} {message}")
-        messages.warning(request, message)
+        # handle_file_upload(request)
+        messages.error(request, f"Please re-upload the files and resubmit the form.")
+        logger.debug(f"Initial data valid {case_form_is_valid}; Main form valid {section_forms_is_valid}; sub form valid: {section_formsets_valid} {messages.get_messages(request)}")
     return  {'form': form, 'section_forms': section_forms, 'case_form': case_form}
 
 def edit_case_data_view(request, case, form:FormTemplate, app_id=None):
@@ -142,7 +142,6 @@ def edit_case_data_view(request, case, form:FormTemplate, app_id=None):
             case_form = CaseForm.create_case_form(app_id, request.user,request.POST, request.FILES, prefix='case_form')
             if not case_form.is_valid():
                 case_form_is_valid = False
-                message = f"{message}[{case_form.errors}]"
             else:
                 case_team = case_form.cleaned_data.get('case_team', None)
                 case_department = case_form.cleaned_data.get('case_department', None)
@@ -154,7 +153,6 @@ def edit_case_data_view(request, case, form:FormTemplate, app_id=None):
                 form_data =  section_form.cleaned_data
             else:
                 section_forms_is_valid = False
-                message = f"{message}[{section_form.errors}]"
             for field_name in DynamicFormSection.nested_formset_fields:
                 nested_formset = create_dynamic_form_section_formset(
                     DynamicFormSection.nested_formset_fields[field_name]['fields'],
@@ -167,7 +165,6 @@ def edit_case_data_view(request, case, form:FormTemplate, app_id=None):
                 field_data = []
                 if not nested_formset.is_valid():
                     section_formsets_valid = False
-                    message = f"{message}[{nested_formset.errors}]"
                 else:
                     for formset in nested_formset:
                         if formset.cleaned_data and not formset.cleaned_data.get('DELETE', False):
@@ -177,7 +174,7 @@ def edit_case_data_view(request, case, form:FormTemplate, app_id=None):
                         section_formsets_data[field_name] = field_data
                     elif DynamicFormSection.nested_formset_fields[field_name]['required']:
                         section_formsets_valid = False
-                        message = f"{message}[{field_name}: cannot be empty]"
+                        messages.warning(request, f'{field_name}: cannot be empty')
                 section_form.nested_formsets[field_name] = nested_formset
             if form_data is not None:                 
                 for a in section_formsets_data:
@@ -203,12 +200,13 @@ def edit_case_data_view(request, case, form:FormTemplate, app_id=None):
         except Exception as e:
             logger.error(e)
             messages.error(request, e)
+            messages.warning(request, f"Please re-upload the files and resubmit the form.")
             return {'form': form, 'section_forms': section_forms, 'case_form': case_form, 'error': e}
         messages.info(request, f"Case [{case.id}] {case.status}")
         return {}
     elif request.method == 'POST':
-        logger.debug(f"Initial data valid {case_form_is_valid}; Main form valid {section_forms_is_valid}; sub form valid: {section_formsets_valid} {message}")
-        messages.warning(request, message)
+        messages.warning(request, f"Please re-upload the files and resubmit the form.")
+        logger.debug(f"Initial data valid {case_form_is_valid}; Main form valid {section_forms_is_valid}; sub form valid: {section_formsets_valid} {messages.get_messages(request)}")
     return  {'form': form, 'section_forms': section_forms, 'case_form': case_form}
 
 def get_case_audit_history(case_instance):
@@ -218,9 +216,25 @@ def get_case_audit_history(case_instance):
     case_data_class = case_instance.form.get_section_model_class()
     case_data_history = get_audit_history(case_data_class.history.filter(id__in=case_data_ids), 'Data', case_data_class)
     history_changes.extend(case_data_history)
-    task_instance_ids = case_instance.task_instances.all()
+    task_instance_ids = case_instance.workflow_instance.task_instance_workflow_instance.all()
+    TaskInstance = case_instance.get_task_instances_model()
     task_instance_history = get_audit_history(TaskInstance.history.filter(id__in=task_instance_ids), 'Task', TaskInstance)
     history_changes.extend(task_instance_history)
     return history_changes
 
+def handle_file_upload(request):
+    # Clean up session data if needed
+    uploaded_files = request.session.get('uploaded_files', {})
+    if 'uploaded_files' in request.session:
+        del request.session['uploaded_files']
+    if request.method == 'POST':
+        # uploaded_files.append(request.FILES)
+        for field_name, file_obj in request.FILES.items():
+            if isinstance(file_obj, (InMemoryUploadedFile, TemporaryUploadedFile)):
+                uploaded_files[field_name] = handle_temp_file(file_obj)
+        request.session['uploaded_files'] = uploaded_files
+    return uploaded_files
 
+def clear_session_files(request):
+    if 'uploaded_files' in request.session:
+        del request.session['uploaded_files']

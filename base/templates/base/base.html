@@ -20,6 +20,7 @@
   const True = true;
   const False = false;
   const permission_list = {{permission_list|safe}}
+  var dictionary_url = "{% url 'api:global_dictionary_view' 0 1 %}";
 </script>
 {% block extrastyle %}{% endblock %}
 {% block extrahead %}{% endblock %}
@@ -35,7 +36,7 @@
           <div class="w3-left">
             <div id="site-name" class="w3-xxlarge logo-navy">
                 <a href="{% url 'app:home' %}" class="color: red"><img src="{% static 'image/brand_navy.png' %}" alt="logo"/></a>
-                <i><strong><b>{{site_header}}</b></strong></i>
+                <i><strong><b>{{site_header}} {% if mini_app is not None %} | {{mini_app.label}} {%endif%}</b></strong></i>
             </div>
           </div>
           <div class="w3-right">
@@ -64,19 +65,45 @@
             </div>
             {% endif %}
           </div>
+          <div class="menu-container w3-right w3-margin-right">
+            <div class="menu-icon W3-center w3-padding w3-margin-small">
+                <i class="fa fa-bars w3-large">&nbsp; Menu</i>
+            </div>
+            <div class="menu-list">
+                {% for app in app_tree %}
+                        {% if app.link %}
+                            <div class="w3-row">
+                                <a href="{{app.link}}" class="logo-navy w3-hover-light-grey {% if mini_app.label == app.label %} w3-khaki {% else %}w3-grey{% endif %}">
+                                    {{app.label}}
+                                </a>
+                                {% for m in app.sub_menu %}
+                                    {% if m.link  and m.menu_level == 1 %}
+                                      <div class="w3-half">
+                                          <a href="{{m.link}}" class="logo-navy">
+                                          &nbsp;{{m.label}}&nbsp;
+                                          </a>
+                                      </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                {% endfor %}
+            </div>
+          </div>
         </div>
       </header>
     {% endblock %}
     <!-- END Header -->
-
+    
     <div class="main" id="main">
-      {% block left-sidebar %}{% endblock %}
       <main id="content-start" class="content">
         {% block messages %}
           {% if messages %}
-            <ul class="messagelist">{% for message in messages %}
-              <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|capfirst }}</li>
-            {% endfor %}</ul>
+            <ul class="messagelist">
+              {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|capfirst }}</li>
+              {% endfor %}
+            </ul>
           {% endif %}
         {% endblock messages %}
         <!-- Content -->

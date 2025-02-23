@@ -1,13 +1,13 @@
 from userManagement.models import Company, Department, Team, CustomUser
-from .models import DictionaryModel
+from .models import DictionaryModel, DictionaryItemModel
 from django.core.cache import cache
 from .cache import global_cache_decorator
 from django.db.models.fields.related import ForeignKey, ManyToManyField, OneToOneField
+from django.conf import settings
+from django.db.models import F, Q
 
-from django.db import models
-import logging
-logger = logging.getLogger('django')
 
+@global_cache_decorator(cache_key='global_select_choices', timeout=settings.CACHE_TIMEOUT_L3)
 def get_select_choices(key):
     data = get_dictionary(key)
     if key in ['department_list_active', 'department_list', 'team_list_active', 'team_list', 'company_list_active', 'company_list']:
@@ -16,8 +16,11 @@ def get_select_choices(key):
         result = [('%s %s (%s)'%(i.get('first_name'),i.get('last_name'), i.get('username')), '%s %s (%s)'%(i.get('first_name'),i.get('last_name'), i.get('username'))) for i in data]
     else:
         result = [(i.get('value'), i.get('value')) for i in data]
+    result.sort(key=lambda x: x[1])
+    result.insert(0, ('', '---Select---'))
     return result
 
+@global_cache_decorator(cache_key='global_select_choices_ids', timeout=settings.CACHE_TIMEOUT_L3)
 def get_select_choices_ids(key):
     data = get_dictionary(key)
     if key in ['department_list_active', 'department_list', 'team_list_active', 'team_list', 'company_list_active', 'company_list']:
@@ -26,9 +29,11 @@ def get_select_choices_ids(key):
         result = [(i.get('id'), '%s %s (%s)'%(i.get('first_name'),i.get('last_name'), i.get('username'))) for i in data]
     else:
         result = [(i.get('id'), i.get('value')) for i in data]
+    result.sort(key=lambda x: x[1])
+    result.insert(0, ('', '---Select---'))
     return result
 
-@global_cache_decorator(cache_key='global_dict', timeout=1800)
+@global_cache_decorator(cache_key='global_dict', timeout=settings.CACHE_TIMEOUT_L3)
 def get_dictionary(key):
     data= None
     if key == 'department_list_active':
@@ -57,6 +62,109 @@ def get_dictionary(key):
     else:
         []
     return data
+
+@global_cache_decorator(cache_key='global_dictionary_item_map', timeout=settings.CACHE_TIMEOUT_L3)
+def get_dictionary_item_map(key):
+    data= None
+    if key == 'company_department_map_active':
+        data = Company.objects.filter(is_active=True, department_company__is_active=True).values(
+                'short_name', 'full_name',
+                'department_company__short_name', 'department_company__full_name'
+            ).annotate(**{
+                'company_short_name': F('short_name'),
+                'company_full_name': F('full_name'),
+                'department_short_name': F('department_company__short_name'),
+                'department_full_name': F('department_company__full_name')
+            })
+    elif key == 'company_department_map':
+        data = Company.objects.all().values(
+                'short_name', 'full_name',
+                'department_company__short_name', 'department_company__full_name'
+            ).annotate(**{
+                'company_short_name': F('short_name'),
+                'company_full_name': F('full_name'),
+                'department_short_name': F('department_company__short_name'),
+                'department_full_name': F('department_company__full_name')
+            })
+    elif key == 'company_department_team_map_active':
+        data = Department.objects.filter(
+                Q(is_active=True) \
+                    & Q(company__is_active=True) \
+                    & (Q(team_department__is_active=True) | Q(team_department__isnull=True))
+            ).values(
+                'short_name', 'full_name',
+                'company__short_name', 'company__full_name',
+                'team_department__short_name', 'team_department__full_name'
+            ).annotate(**{
+                'company_short_name': F('company__short_name'),
+                'company_full_name': F('company__full_name'),
+                'department_short_name': F('short_name'),
+                'department_full_name': F('full_name'),
+                'team_short_name': F('team_department__short_name'),
+                'team_full_name': F('team_department__full_name')
+            })
+    elif key == 'company_department_team_map':
+        data = Department.objects.all().values(
+                'short_name', 'full_name',
+                'company__short_name', 'company__full_name',
+                'team_department__short_name', 'team_department__full_name'
+            ).annotate(**{
+                'company_short_name': F('company__short_name'),
+                'company_full_name': F('company__full_name'),
+                'department_short_name': F('short_name'),
+                'department_full_name': F('full_name'),
+                'team_short_name': F('team_department__short_name'),
+                'team_full_name': F('team_department__full_name')
+            })
+    elif key == 'department_team_map_active':
+        data = Department.objects.filter(
+                Q(is_active=True) \
+                    & Q(company__is_active=True) \
+                    & (Q(team_department__is_active=True) | Q(team_department__isnull=True))
+            ).values(
+                'short_name', 'full_name',
+                'team_department__short_name', 'team_department__full_name'
+            ).annotate(**{
+                'department_short_name': F('short_name'),
+                'department_full_name': F('full_name'),
+                'team_short_name': F('team_department__short_name'),
+                'team_full_name': F('team_department__full_name')
+            })
+    elif key == 'department_team_map':
+        data = Department.objects.all().values(
+                'short_name', 'full_name',
+                'team_department__short_name', 'team_department__full_name'
+            ).annotate(**{
+                'department_short_name': F('short_name'),
+                'department_full_name': F('full_name'),
+                'team_short_name': F('team_department__short_name'),
+                'team_full_name': F('team_department__full_name')
+            })
+    elif key.startswith('dict_') :
+        if key.endswith('_active'):
+            data = DictionaryItemModel.get_active_dictionary_item_map_by_code(code=key.replace('dict_', '').replace('_active', ''))
+        else:
+            data = DictionaryItemModel.get_dictionary_item_map_by_code(code=key.replace('dict_', ''))
+    if data is not None:
+        data = list(data)
+    else:
+        []
+    return data
+
+@global_cache_decorator(cache_key='global_select_choices_from_map', timeout=settings.CACHE_TIMEOUT_L3)
+def get_select_choices_from_map(map_name, map_field_key, map_field_value=None):
+    data = get_dictionary_item_map(map_name)
+    if data is not None and len(data) > 0:
+        if map_field_value is None:
+            result = [(i.get(map_field_key), i.get(map_field_key)) for i in data if i.get(map_field_key) is not None]
+        else:
+            result = [(i.get(map_field_key), i.get(map_field_value)) for i in data if i.get(map_field_key) is not None and i.get(map_field_value) is not None]
+        result = list(set(result))
+        result.sort(key=lambda x: x[1])
+        result.insert(0, ('', '---Select---'))
+    else:
+        result = []
+    return result
 
 def get_audit_history_fields():
     return {

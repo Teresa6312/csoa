@@ -18,14 +18,32 @@
     const perm_file_download = {{ perm_file_download|default:False|yesno:"true,false" }};
     const perm_file_exportCsv = {{ perm_file_exportCsv|default:False|yesno:"true,false" }};
 
+    var file_created_at_index = -1;
+    var file_updated_at_index = -1;
+
     var toLoadFileData = true
     // Function to create table header
     function define_file_columns() {
         var columns = []
+        var index = 0
         for (key in file_fields) {
             columns.push({data:key})
+            if (key === 'created_at') {
+                file_created_at_index = index; // Store the index of 'created_at' column
+            } else if (key === 'updated_at') {
+                file_updated_at_index = index; // Store the index of 'updated_at' column
+            }
+            index++;
         }
         return columns
+    }
+
+    var file_order = [[0, 'desc']]; // Default order (ID column)
+    if (file_updated_at_index !== -1) {
+        file_order = [[file_updated_at_index, 'desc']]; // Order by 'create_at' if it exists
+    }
+    else if (file_created_at_index !== -1) {
+        file_order = [[file_created_at_index, 'desc']]; // Order by 'create_at' if it exists
     }
 
     function load_file_data() {
@@ -61,19 +79,17 @@
                         // Show custom error message
                         const message = xhr.responseJSON['message']
                         if(message === undefined) {
-                            $('#listDataTable').html('<div class="alert alert-danger">System error</div>');
-                            alert("System error");
+                            createMessageBox('System error', 'error')
                         } else {
-                            $('#listDataTable').html('<div class="alert alert-danger">'+message+'</div>');
-                            alert(message);
+                            createMessageBox(message, 'error')
                         }
-                        window.location.href = '{{ request.path|safe }}';
+                        // window.location.href = '{{ request.path|safe }}';
                     }
                 },
                 "columns": define_file_columns(),  // 使用后端传递的列定义
                 "dom": 'Bfrtip',
                 "buttons": file_buttons, 
-                "order": [[1, 'desc']], // order by column index, satrting from 0; 1 is change time 
+                "order": file_order, // order by column index, satrting from 0; 
                 "columnDefs": columnDefs
             });
             // Correct the click event binding

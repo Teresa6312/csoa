@@ -45,20 +45,25 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admindocs',  # Enable admindocs
     'simple_history',
+    'rest_framework', # Enable Django REST framework
+    'django_jsonform',
     # 'axes',
-    'django_tables2',
-    'explorer',
+    # 'django_tables2',
+    # 'explorer',
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'simple_history.middleware.HistoryRequestMiddleware',
+    'django.middleware.security.SecurityMiddleware', #放在最前面是最佳实践。它处理一些安全相关的设置，尽早应用可以提高安全性。
+    'django.contrib.sessions.middleware.SessionMiddleware',#通常放在 CommonMiddleware 之前，因为它依赖于会话。
+    'django.middleware.common.CommonMiddleware',#处理一些通用的任务，比如 URL 重写、gzip 压缩等。
+    'django.middleware.csrf.CsrfViewMiddleware',#必须在 SessionMiddleware 之后，因为它使用会话来存储 CSRF token。
+    'django.contrib.auth.middleware.AuthenticationMiddleware',#在 SessionMiddleware 之后，它使用会话来验证用户身份。
+    'django.contrib.messages.middleware.MessageMiddleware', #通常放在 AuthenticationMiddleware 之后，因为它可能需要访问用户信息。
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',#处理 clickjacking 攻击，位置一般放在安全相关的中间件之后。
+    'simple_history.middleware.HistoryRequestMiddleware',#用于 simple_history 记录历史变更，位置通常放在与数据库操作相关的中间件之前。
+    # 'django.contrib.admindocs.middleware.XViewMiddleware', # Enable admindocs ??
+    # 'django.middleware.locale.LocaleMiddleware', # Enable localization ??
+    
     # middleware to required user login
     'csoa.middleware.LoginRequiredMiddleware',
     # middleware to print user login/logout log
@@ -67,7 +72,7 @@ MIDDLEWARE = [
     'base.middleware.MenuMiddleware',
     # middleware to Ensure that multiple database operations are performed in one request 
     # to avoid data inconsistency caused by failure of some operations
-    'base.middleware.AtomicTransactionMiddleware',
+    'base.middleware.AtomicTransactionMiddleware',#这是一个很好的实践，它可以确保所有数据库操作都在一个事务中完成。  但需要仔细检查你的中间件和视图函数，确保所有涉及数据库操作的代码都在这个中间件的“包裹”之下。  如果有些数据库操作在事务之外，可能会导致数据不一致。
 
     # # middleware to handle error pages 
     # 'base.middleware.CustomErrorHandlingMiddleware',
@@ -175,7 +180,7 @@ MEDIA_URL = '/files/'  # URL prefix for media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'files')  # File system path to the directory for storing media files
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20 MB in bytes
-
+FILE_UPLOAD_MAX_VOLUME = 10
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
@@ -211,6 +216,15 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 LOGIN_REDIRECT_URL = '/'  # Redirect to the home page after login
+
+# Session configuration
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+SESSION_COOKIE_AGE = 60 * 15  # session expire time, in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Whether to expire the session when the user closes the browser
+
+CONN_MAX_AGE = 60  # The lifetime of a database connection, in seconds. Use 0 to close database connections at the end of each request.
+CONN_HEALTH_CHECKS = True  # Enable health checks for database connections
+CONN_HEALTH_CHECK_PERIOD = 30  # The number of seconds between database connection health checks
 
 # Define the base directory for log files
 LOG_DIR = os.path.join(BASE_DIR, 'logs')

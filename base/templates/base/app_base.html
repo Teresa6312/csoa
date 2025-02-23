@@ -1,7 +1,6 @@
 {% extends "base/base.html" %}
 {% load i18n static %}
 
-
 {% block extrahead %} {{ block.super }}
     {% if datatables %}
         <!-- DataTables JS -->
@@ -23,10 +22,6 @@
 {% endblock %}
 
 {% block extrastyle %}
-    {% if django_tables2 %}
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
-        <link rel="stylesheet" type="text/css" href="{% static 'django_tables2/bootstrap.css' %}">
-    {% endif %}
     {% if datatables %}
         <!-- DataTables CSS -->
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
@@ -37,21 +32,6 @@
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
     {% endif %}
     {{ block.super }}
-{% endblock %}
-
-
-{% block left-sidebar %}
-<nav class="sticky w3-container w3-margin w3-border-right" id="nav-sidebar" aria-label="Sidebar" aria-expanded="true">
-    {% for m in level_1_menu.sub_menu %}
-        <div class="w3-round-xxlarge w3-grey w3-padding w3-margin">
-            {% if m.link %}
-                <a href="{{m.link}}">
-                    {{m.label}}
-                </a>
-            {% endif %}
-        </div>
-    {% endfor %}
-</nav>
 {% endblock %}
 
 {% block content %}

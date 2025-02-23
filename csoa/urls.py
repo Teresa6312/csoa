@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.urls import path, include, re_path
 from django.contrib import admin
 from django.apps import apps
@@ -23,21 +24,60 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/doc/', include('django.contrib.admindocs.urls')),  # Enable admindocs URLs
-    path('admin/', admin.site.urls),
-    path('', include('base.urls', namespace='app')),
-    path('api/', include('base.urls_api', namespace='api')),
-    path('forms/', include('jsonForm.urls', namespace='jsonForm')),
-    path('user/', include('userManagement.urls', namespace='userManagement')),
-    
-    path('accounts/login/', auth_views.LoginView.as_view(template_name='accounts/login.html'), name = 'login'),
-    path('accounts/logout/', auth_views.LogoutView.as_view(template_name='accounts/logged_out.html'), name = 'logout'),
-    path('accounts/change-password/', auth_views.PasswordChangeView.as_view(template_name='accounts/password_change_form.html'), name = 'password_change'),
-    path('accounts/reset-password/', auth_views.PasswordResetView.as_view(template_name='accounts/password_reset_form.html', email_template_name='email/password_reset_email.html'), name='password_reset'),
-    path('accounts/reset-password/done/', auth_views.PasswordResetDoneView.as_view(template_name='accounts/password_reset_done.html'), name='password_reset_done'),
-    re_path(r'^accounts/reset-password/confirm/(?P<uidb64>[0-9A-Za-z]+)-(?P<token>.+)/$',
-        auth_views.PasswordResetConfirmView.as_view(template_name='accounts/password_reset_confirm.html'),name='password_reset_confirm'),
-    path('accounts/reset-password/complete/', auth_views.PasswordResetCompleteView.as_view(template_name='accounts/password_reset_complete.html'), name='password_reset_complete'),
+    path(
+        "admin/doc/", include("django.contrib.admindocs.urls")
+    ),  # Enable admindocs URLs
+    path("admin/", admin.site.urls),
+    path("", include("base.urls", namespace="app")),
+    path("api/", include("base.urls_api", namespace="api")),
+    path("forms/", include("jsonForm.urls", namespace="jsonForm")),
+    path("user/", include("userManagement.urls", namespace="userManagement")),
+    path(
+        "accounts/login/",
+        auth_views.LoginView.as_view(template_name="accounts/login.html"),
+        name="login",
+    ),
+    path(
+        "accounts/logout/",
+        auth_views.LogoutView.as_view(template_name="accounts/logged_out.html"),
+        name="logout",
+    ),
+    path(
+        "accounts/change-password/",
+        auth_views.PasswordChangeView.as_view(
+            template_name="accounts/password_change_form.html"
+        ),
+        name="password_change",
+    ),
+    path(
+        "accounts/reset-password/",
+        auth_views.PasswordResetView.as_view(
+            template_name="accounts/password_reset_form.html",
+            email_template_name="email/password_reset_email.html",
+        ),
+        name="password_reset",
+    ),
+    path(
+        "accounts/reset-password/done/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="accounts/password_reset_done.html"
+        ),
+        name="password_reset_done",
+    ),
+    re_path(
+        r"^accounts/reset-password/confirm/(?P<uidb64>[0-9A-Za-z]+)-(?P<token>.+)/$",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="accounts/password_reset_confirm.html"
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "accounts/reset-password/complete/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="accounts/password_reset_complete.html"
+        ),
+        name="password_reset_complete",
+    ),
 ]
 
 if settings.DEBUG:
@@ -45,7 +85,7 @@ if settings.DEBUG:
 
 admin.site.site_header = settings.SITE_NAME
 admin.site.site_title = settings.SITE_NAME
-admin.site.index_title = f'Welcome to CS {settings.SITE_NAME}'
+admin.site.index_title = f"Welcome to CS {settings.SITE_NAME}"
 
 # admin.site.sit_url = None
 

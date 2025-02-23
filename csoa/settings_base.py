@@ -16,7 +16,7 @@ import os
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-SITE_NAME = 'OA System'
+SITE_NAME = "OA System"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,59 +24,55 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # settings_path = os.path.join(BASE_DIR, 'settings_file.py')
 # if os.path.exists(settings_path):
 #     from settings_file import *
-    
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'base.apps.BaseConfig',
-    'userManagement.apps.UsermanagementConfig',
-    'jsonForm.apps.JsonformConfig',
-    'modelBase.apps.ModelbaseConfig',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.admindocs',  # Enable admindocs
-    'simple_history',
-    'rest_framework', # Enable Django REST framework
-    'django_jsonform',
+    "base.apps.BaseConfig",
+    "userManagement.apps.UsermanagementConfig",
+    "jsonForm.apps.JsonformConfig",
+    "modelBase.apps.ModelbaseConfig",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.admindocs",  # Enable admindocs
+    "simple_history",
+    "rest_framework",  # Enable Django REST framework
+    "django_jsonform",
     # 'axes',
     # 'django_tables2',
     # 'explorer',
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware', #放在最前面是最佳实践。它处理一些安全相关的设置，尽早应用可以提高安全性。
-    'django.contrib.sessions.middleware.SessionMiddleware',#通常放在 CommonMiddleware 之前，因为它依赖于会话。
-    'django.middleware.common.CommonMiddleware',#处理一些通用的任务，比如 URL 重写、gzip 压缩等。
-    'django.middleware.csrf.CsrfViewMiddleware',#必须在 SessionMiddleware 之后，因为它使用会话来存储 CSRF token。
-    'django.contrib.auth.middleware.AuthenticationMiddleware',#在 SessionMiddleware 之后，它使用会话来验证用户身份。
-    'django.contrib.messages.middleware.MessageMiddleware', #通常放在 AuthenticationMiddleware 之后，因为它可能需要访问用户信息。
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',#处理 clickjacking 攻击，位置一般放在安全相关的中间件之后。
-    'simple_history.middleware.HistoryRequestMiddleware',#用于 simple_history 记录历史变更，位置通常放在与数据库操作相关的中间件之前。
+    "django.middleware.security.SecurityMiddleware",  # 放在最前面是最佳实践。它处理一些安全相关的设置，尽早应用可以提高安全性。
+    "django.contrib.sessions.middleware.SessionMiddleware",  # 通常放在 CommonMiddleware 之前，因为它依赖于会话。
+    "django.middleware.common.CommonMiddleware",  # 处理一些通用的任务，比如 URL 重写、gzip 压缩等。
+    "django.middleware.csrf.CsrfViewMiddleware",  # 必须在 SessionMiddleware 之后，因为它使用会话来存储 CSRF token。
+    "django.contrib.auth.middleware.AuthenticationMiddleware",  # 在 SessionMiddleware 之后，它使用会话来验证用户身份。
+    "django.contrib.messages.middleware.MessageMiddleware",  # 通常放在 AuthenticationMiddleware 之后，因为它可能需要访问用户信息。
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",  # 处理 clickjacking 攻击，位置一般放在安全相关的中间件之后。
+    "simple_history.middleware.HistoryRequestMiddleware",  # 用于 simple_history 记录历史变更，位置通常放在与数据库操作相关的中间件之前。
     # 'django.contrib.admindocs.middleware.XViewMiddleware', # Enable admindocs ??
     # 'django.middleware.locale.LocaleMiddleware', # Enable localization ??
-    
     # middleware to required user login
-    'csoa.middleware.LoginRequiredMiddleware',
+    "csoa.middleware.LoginRequiredMiddleware",
     # middleware to print user login/logout log
-    'base.middleware.UserActivityMiddleware',
+    "base.middleware.UserActivityMiddleware",
     # middleware to set menu in request
-    'base.middleware.MenuMiddleware',
-    # middleware to Ensure that multiple database operations are performed in one request 
+    "base.middleware.MenuMiddleware",
+    # middleware to Ensure that multiple database operations are performed in one request
     # to avoid data inconsistency caused by failure of some operations
-    'base.middleware.AtomicTransactionMiddleware',#这是一个很好的实践，它可以确保所有数据库操作都在一个事务中完成。  但需要仔细检查你的中间件和视图函数，确保所有涉及数据库操作的代码都在这个中间件的“包裹”之下。  如果有些数据库操作在事务之外，可能会导致数据不一致。
-
-    # # middleware to handle error pages 
+    "base.middleware.AtomicTransactionMiddleware",  # 这是一个很好的实践，它可以确保所有数据库操作都在一个事务中完成。  但需要仔细检查你的中间件和视图函数，确保所有涉及数据库操作的代码都在这个中间件的“包裹”之下。  如果有些数据库操作在事务之外，可能会导致数据不一致。
+    # # middleware to handle error pages
     # 'base.middleware.CustomErrorHandlingMiddleware',
-
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
     # It only formats user lockout messages and renders Axes lockout responses
     # on failed user authentication attempts from login views.
@@ -85,37 +81,36 @@ MIDDLEWARE = [
     # 'axes.middleware.AxesMiddleware',
 ]
 
-ROOT_URLCONF = 'csoa.urls'
+ROOT_URLCONF = "csoa.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-             BASE_DIR / 'base' / 'templates',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [
+            BASE_DIR / "base" / "templates",
         ],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.csrf', # for using Resfull API set up CSRF (Cross-Site Request Forgery) protection  setup_csrf 
-                'base.context_processors.default_context', # set subtitle, is_nav_sidebar_enabled, is_popup for all request
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.csrf",  # for using Resfull API set up CSRF (Cross-Site Request Forgery) protection  setup_csrf
+                "base.context_processors.default_context",  # set subtitle, is_nav_sidebar_enabled, is_popup for all request
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'csoa.wsgi.application'
+WSGI_APPLICATION = "csoa.wsgi.application"
 
 
 AUTHENTICATION_BACKENDS = [
     # AxesStandaloneBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
     # 'axes.backends.AxesStandaloneBackend',
-
     # Django ModelBackend is the default authentication backend.
-    'django.contrib.auth.backends.ModelBackend',
+    "django.contrib.auth.backends.ModelBackend",
 ]
 
 # Password validation
@@ -123,16 +118,16 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -157,9 +152,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -168,7 +163,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
@@ -176,128 +171,133 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / "staticProd"
 
-MEDIA_URL = '/files/'  # URL prefix for media files
-MEDIA_ROOT = os.path.join(BASE_DIR, 'files')  # File system path to the directory for storing media files
+MEDIA_URL = "/files/"  # URL prefix for media files
+MEDIA_ROOT = os.path.join(
+    BASE_DIR, "files"
+)  # File system path to the directory for storing media files
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20 MB in bytes
 FILE_UPLOAD_MAX_VOLUME = 10
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = 'userManagement.CustomUser'
+AUTH_USER_MODEL = "userManagement.CustomUser"
 
 # Email backend configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 # Use broker_connection_retry_on_startup to retain existing behavior
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 # 其他可选的配置项
 # CELERY_ACKS_LATE = True # may only use for testing
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "UTC"
 # CELERY_TIMEZONE = 'America/New_York'
 
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BEAT_SCHEDULE = {
-    'set_key-every-30-seconds': {
-        'task': 'base.tasks.set_key',
-        'schedule': 3000.0,
+    "set_key-every-30-seconds": {
+        "task": "base.tasks.set_key",
+        "schedule": 3000.0,
     },
-    'get_redis_data-every-30-seconds': {
-        'task': 'base.tasks.get_redis_data_test',
-        'schedule': 3600.0,
+    "get_redis_data-every-30-seconds": {
+        "task": "base.tasks.get_redis_data_test",
+        "schedule": 3600.0,
     },
 }
 
-LOGIN_REDIRECT_URL = '/'  # Redirect to the home page after login
+LOGIN_REDIRECT_URL = "/"  # Redirect to the home page after login
 
 # Session configuration
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 SESSION_COOKIE_AGE = 60 * 15  # session expire time, in seconds
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Whether to expire the session when the user closes the browser
+SESSION_EXPIRE_AT_BROWSER_CLOSE = (
+    True  # Whether to expire the session when the user closes the browser
+)
 
 CONN_MAX_AGE = 60  # The lifetime of a database connection, in seconds. Use 0 to close database connections at the end of each request.
 CONN_HEALTH_CHECKS = True  # Enable health checks for database connections
-CONN_HEALTH_CHECK_PERIOD = 30  # The number of seconds between database connection health checks
+CONN_HEALTH_CHECK_PERIOD = (
+    30  # The number of seconds between database connection health checks
+)
 
 # Define the base directory for log files
-LOG_DIR = os.path.join(BASE_DIR, 'logs')
+LOG_DIR = os.path.join(BASE_DIR, "logs")
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse' #允许配置仅在生产环境（DEBUG=False）下激活的日志处理器，而在开发环境（DEBUG=True）下则不激活。
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {
+        "require_debug_false": {
+            "()": "django.utils.log.RequireDebugFalse"  # 允许配置仅在生产环境（DEBUG=False）下激活的日志处理器，而在开发环境（DEBUG=True）下则不激活。
         }
-
     },
-    'formatters': {
-        'default': {
-            'format': '%(levelname)s %(asctime)s %(pathname)s/%(module)s - %(funcName)s [line: %(lineno)d]  %(process)d %(thread)d %(message)s',
+    "formatters": {
+        "default": {
+            "format": "%(levelname)s %(asctime)s %(pathname)s/%(module)s - %(funcName)s [line: %(lineno)d]  %(process)d %(thread)d %(message)s",
         },
-        'user_activity': {
-            'format': '%(levelname)s %(asctime)s %(pathname)s/%(module)s - %(funcName)s [line: %(lineno)d]  %(process)d %(thread)d User: %(user_id)s %(message)s',
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(LOG_DIR, 'logfile.log'),
-            'when': 'midnight',  # Rotate logs at midnight
-            'delay': True,  # Delay opening the file until the first log message
-            'backupCount': 7,    # Keep 7 days of logs
-            'formatter': 'default',
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'default',
-        },
-        'user_activity_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(LOG_DIR, 'user_activity.log'),
-            'when': 'midnight',  # Rotate logs at midnight
-            'backupCount': 7,    # Keep 7 days of logs
-            'delay': True,  # Delay opening the file until the first log message
-            'formatter': 'user_activity',
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
-            'filters': ['require_debug_false'],  # 仅在 DEBUG=False 时发送邮件
+        "user_activity": {
+            "format": "%(levelname)s %(asctime)s %(pathname)s/%(module)s - %(funcName)s [line: %(lineno)d]  %(process)d %(thread)d User: %(user_id)s %(message)s",
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],#, 'console'
-            'level': 'DEBUG', # should I change to error level?
-            'propagate': True,
+    "handlers": {
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": os.path.join(LOG_DIR, "logfile.log"),
+            "when": "midnight",  # Rotate logs at midnight
+            "delay": True,  # Delay opening the file until the first log message
+            "backupCount": 7,  # Keep 7 days of logs
+            "formatter": "default",
         },
-        'django.db.backends': {
-            'handlers': ['file', 'console'],
-            'level': 'DEBUG',
-            'propagate': False,
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "default",
         },
-        'user_activity': {
-            'handlers': ['user_activity_file'],
-            'level': 'INFO',
-            'propagate': False,
+        "user_activity_file": {
+            "level": "INFO",
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": os.path.join(LOG_DIR, "user_activity.log"),
+            "when": "midnight",  # Rotate logs at midnight
+            "backupCount": 7,  # Keep 7 days of logs
+            "delay": True,  # Delay opening the file until the first log message
+            "formatter": "user_activity",
         },
-        'django.utils.autoreload': {
-            'handlers': ['file', 'console'],
-            'level': 'WARNING',
-            'propagate': False,
+        "mail_admins": {
+            "level": "ERROR",
+            "class": "django.utils.log.AdminEmailHandler",
+            "filters": ["require_debug_false"],  # 仅在 DEBUG=False 时发送邮件
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["file"],  # , 'console'
+            "level": "DEBUG",  # should I change to error level?
+            "propagate": True,
+        },
+        "django.db.backends": {
+            "handlers": ["file", "console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "user_activity": {
+            "handlers": ["user_activity_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.utils.autoreload": {
+            "handlers": ["file", "console"],
+            "level": "WARNING",
+            "propagate": False,
         },
     },
 }

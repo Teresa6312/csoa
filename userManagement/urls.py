@@ -1,3 +1,3 @@
-app_name = 'userManagement'
+app_name = "userManagement"
 
-urlpatterns=[]
+urlpatterns = []

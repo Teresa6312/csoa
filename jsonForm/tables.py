@@ -77,7 +77,7 @@
 #         case_department = django_filters.ChoiceFilter(choices= [], field_name='case__case_department')
 #         created_at_after = django_filters.DateFilter(field_name='case__created_at', lookup_expr='gte')
 #         created_at_before = django_filters.DateFilter(field_name='case__created_at', lookup_expr='lte')
-    
+
 #         class Meta:
 #             model = data_class
 #             fields = ["form", "case_status","case_data","case_department","case_team", 'created_at_after', 'created_at_before',]

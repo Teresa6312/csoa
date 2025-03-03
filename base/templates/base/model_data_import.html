@@ -1,0 +1,31 @@
+{% extends "base/app_base.html" %}
+{% load i18n static %}
+{% load tz %}
+
+{% block content %}
+<h4 class="w3-magin w3-padding w3-bar w3-grey">
+    Import Model Data
+</h4>
+<div>
+    Sample data format can be found in the reference folder<br/>
+    app(Django app label): Django app to import data for.<br/>
+    model (Model label): Django model class to update or create.<br/>
+    data (list of dict): Data to update the instance with. Keys may include:<br/>
+        - if all of this dict keys don't have "-" prefix, then the dict data is use to create new instance.<br/>
+        - "fieldname": Direct value for a field if it is not a model related field, like forgien key, many-to-many, etc.<br/>
+        - "-fieldname": Used in filters for get the unique instance.<br/>
+</div>
+<div class="w3-container">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="w3-row">
+            <button class="w3-right w3-grey w3-hover-light-grey w3-border-0 w3-padding" type="submit">Submit</button>
+        </div>
+    </form>
+</div>
+
+{% if queryset %}
+    {% include "base_blocks/list_block.html"%}
+{% endif %}
+{% endblock%}

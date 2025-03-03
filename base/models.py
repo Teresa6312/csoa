@@ -69,6 +69,22 @@ class BaseAuditModel(models.Model):
     def has_file_field(cls):
         return False
 
+    @classmethod
+    def get_unique_fields(cls):
+        unique_fields = []
+        for field in model_cls._meta.fields:
+            if field.unique:
+                unique_fields.append(field.name)
+        return unique_fields
+
+    @classmethod
+    def get_unique_constraints(cls):
+        unique_constraints = []
+        for constraint in model_cls._meta.constraints:
+            if isinstance(constraint, models.UniqueConstraint):
+                unique_constraints.extend(constraint.fields)
+        return unique_constraints
+
 
 class DictionaryModel(BaseAuditModel):
     code = models.CharField(

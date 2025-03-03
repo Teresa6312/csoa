@@ -1,6 +1,6 @@
 from django import forms
-from django.core.files.uploadedfile import InMemoryUploadedFile
-
+from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+from django.core.exceptions import ValidationError
 from django.conf import settings
 
 
@@ -23,7 +23,7 @@ class MultipleFileInput(forms.ClearableFileInput):
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        if isinstance(value, InMemoryUploadedFile):
+        if isinstance(value, (InMemoryUploadedFile, TemporaryUploadedFile)):
             context["widget"]["value"] = value.name  # Set the value to the file name
             context["widget"][
                 "display_value"
@@ -57,16 +57,6 @@ class MultipleFileField(forms.FileField):
         return result
 
 
-class HeaderingForm(forms.Form):
-    headers = forms.MultipleChoiceField(choices=[], required=False)
-    initial_form_value = forms.CharField(widget=forms.HiddenInput(), required=False)
-
-    def __init__(self, *args, **kwargs):
-        initial_form_value = kwargs.pop("initial_form_value", "")
-        super().__init__(*args, **kwargs)
-        self.fields["initial_form_value"].initial = initial_form_value
-
-
 class CustomClearableFileInput(forms.ClearableFileInput):
     template_name = "base_weights/custom_clearable_file_input.html"
 
@@ -77,7 +67,7 @@ class CustomClearableFileInput(forms.ClearableFileInput):
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        if isinstance(value, InMemoryUploadedFile):
+        if isinstance(value, (InMemoryUploadedFile, TemporaryUploadedFile)):
             context["widget"]["value"] = value.name  # Set the value to the file name
             context["widget"][
                 "display_value"
@@ -93,3 +83,14 @@ class CustomClearableFileInput(forms.ClearableFileInput):
             )
         context["widget"]["required"] = self.original_required
         return context
+
+
+class ModelDataImportForm(forms.Form):
+    file = forms.FileField(required=True)
+
+    def clean_file(self):
+        file = self.cleaned_data.get("file")
+        if file:
+            if not file.name.endswith(".json") and not file.name.endswith(".JSON"):
+                raise ValidationError("Only JSON files are allowed.")
+        return file

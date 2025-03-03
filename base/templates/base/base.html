@@ -6,13 +6,13 @@
     <title>
         {% if title is not None %} {{title}} {% else %} {{current_page_menu.label}} {% endif %}{% if mini_app is not None %} | {{mini_app.label}}{%endif%}
     </title>
-<link rel="icon" href="/static/image/favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="{% static "admin/css/base.css" %}">
+<link rel="icon" href="{% static 'image/favicon.ico' %}" type="image/x-icon">
+<link rel="stylesheet" href="{% static 'admin/css/base.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="{% static 'base/css/custom.css' %}">
 
-<script src="/static/js/common.js"></script>
+<script src="{% static 'js/common.js' %}"></script>
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
@@ -40,21 +40,22 @@
             </div>
           </div>
           <div class="w3-right">
-            {% if not user.is_anonymous %}
-            <a href="{% url 'app:user_profile' %}" class="logo-navy"><i class="fa fa-user-circle w3-xxlarge logo-navy"></i></a>
+            
+            {% if user_info.is_authenticated %}
+            <a href="{% url 'user_profile' %}" class="logo-navy"><i class="fa fa-user-circle w3-xxlarge logo-navy"></i></a>
             <div id="user-tools" class="w3-left-align logo-navy">
                 {% block welcome-msg %}
                     <p><strong>{{user}}</strong></p>
                 {% endblock %}
                 {% block userlinks %}
-                    {% if user.is_active and user.is_staff %}
+                    {% if user_info.is_active and user_info.is_staff %}
                         {% url 'django-admindocs-docroot' as docsroot %}
                         {% if docsroot %}
                             <a href="{{ docsroot }}" class="logo-navy">{% translate 'Documentation' %}</a> /
                         {% endif %}
                     {% endif %}
-                    {% if user.has_usable_password %}
-                    <a href="{% url 'password_change' %}" class="logo-navy">{% translate 'Change password' %}</a> /
+                    {% if user_info.is_superuser %}
+                      <a href="{% url 'password_change' %}" class="logo-navy">{% translate 'Change password' %}</a> /
                     {% endif %}
                     <form id="logout-form" method="post" action="{% url 'logout' %}">
                         {% csrf_token %}

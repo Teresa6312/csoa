@@ -40,7 +40,9 @@ class BaseAuditAdmin(SimpleHistoryAdmin):
                     + default_readonly_fields
                     + self.readonly_fields_for_update
                 )
+            else:
                 return self.readonly_fields + default_readonly_fields
+        else:
             return default_readonly_fields
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):

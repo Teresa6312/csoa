@@ -234,7 +234,7 @@ def create_dynamic_form_section(json_str, form_section_id=None, instance=None):
                             field_name if prefix is None else f"{prefix}-{field_name}"
                         )
                         if files.get(file_key) is not None:
-                            field_default = files.get(file_key)
+                            field_default = files.getlist(file_key)
                     if field_props.get("multiple", False):
                         self.fields[field_name] = MultipleFileField(
                             label=field_label,
@@ -514,6 +514,29 @@ def create_dynamic_task_instance_form(TaskInstanceClass):
             for field_name, field in self.fields.items():
                 if field.required:
                     self.fields[field_name].label = self.fields[field_name].label + "*"
+
+        def pre_clean_validation(self, application, case):
+            instance = self.instance
+            task = (
+                instance.decision_point.next_task if instance.decision_point else None
+            )
+            pers = []  # List to store Permission objects
+            if task is not None and task.task_type == constants.TASK_TYPE_FLOW:
+                if task.assign_to_role is not None:
+                    per = Permission.get_assign_to_role(
+                        application, task.assign_to_role, case
+                    )  # Get Permission by role
+                    if per is not None:
+                        pers.append(per)
+                elif task.assign_to is not None:
+                    pers = task.assign_to.all()  # Get Permissions directly
+                if len(pers) == 0:
+                    assign_to = (
+                        task.assign_to_role or task.assign_to
+                    )  # Get assign_to value
+                    raise ValueError(
+                        f"No user group was found to assign the task ({task.name} - {assign_to}). If the task is assign to the case/request owner, it may has lost the access"
+                    )  # Handle no assignees
 
         def save(self, commit=True):
             instance = super().save(commit=False)

@@ -41,12 +41,9 @@ class MenuMiddleware:
         Returns:
             The response object.
         """
-        if request.user.is_authenticated:
-            user_info = (
-                request.session["user_info"] if "user_info" in request.session else None
-            )
-        else:
-            user_info = None
+        user_info = (
+            request.session["user_info"] if "user_info" in request.session else {}
+        )
 
         # Allow access to accounts/static/global pages, admin pages (for superusers), and favicon.
         if (
@@ -69,7 +66,7 @@ class MenuMiddleware:
         new_path = normalized_url(request.path)
 
         # Set up menu_tree, app_tree, current_page_menu, permission_list, and level_1_menu for the user.
-        cache_key = f"MenuMiddleware[:{request.user.id}:{new_path}]"
+        cache_key = f"MenuMiddleware[:{user_info.get('id')}:{new_path}]"
         data = cache.get(cache_key)
 
         if data is not None:  # Retrieve from cache if available
@@ -145,7 +142,7 @@ class MenuMiddleware:
         Returns:
             A tuple containing the app tree and menu tree.
         """
-        if request.path.startswith("/admin") or not request.user.is_authenticated:
+        if request.path.startswith("/admin") or user_info is None:
             return {}, {}  # Empty trees for admin or anonymous users
 
         if user_info.get(
@@ -217,12 +214,6 @@ class UserActivityMiddleware:
         self.logger = logging.getLogger("user_activity")
 
     def __call__(self, request):
-        # Only extend session if it exists and is modified
-        if hasattr(request, "session") and request.session.modified:
-            # Get session cookie age from settings (default or custom backend)
-            session_age = settings.SESSION_COOKIE_AGE
-            # Update session expiry
-            request.session.set_expiry(session_age)
 
         response = self.get_response(request)
 
@@ -255,6 +246,9 @@ class AtomicTransactionMiddleware:
             # 在事务中处理所有视图请求
             with transaction.atomic():
                 response = self.get_response(request)
+                # Force rollback if response indicates error
+                if 400 <= response.status_code < 600:
+                    transaction.set_rollback(True)
         else:
             response = self.get_response(request)
         return response

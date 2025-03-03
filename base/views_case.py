@@ -6,7 +6,6 @@ from jsonForm.models import FormTemplate, Workflow
 from userManagement.models import AppMenu
 from jsonForm.forms import create_dynamic_task_instance_form
 from jsonForm import util as formUtil
-from .forms import HeaderingForm
 from .models import FileModel
 
 # from jsonForm.tables import create_dynamic_case_table_class, create_dynamic_case_data_table_class, create_dynamic_case_data_filter
@@ -58,6 +57,7 @@ def edit_case_view(request, context, app_name, form_code, case_id):
     template_name = "base/app_case_form.html"
     form = context["form"]
     case_instance = context["case_instance"]
+    mini_app = context["mini_app"]
     if case_instance is None:
         return redirect("app:app_home", app_name)
     workflow_edit_status = [
@@ -73,7 +73,7 @@ def edit_case_view(request, context, app_name, form_code, case_id):
         )
         return redirect("app:app_home", app_name)
     case_context = formUtil.edit_case_data_view(
-        request, case_instance, form, context["mini_app"].id
+        request, case_instance, form, mini_app.id
     )
     if case_context == {}:
         return redirect("app:app_my_cases_index", app_name)
@@ -88,16 +88,26 @@ def edit_case_view(request, context, app_name, form_code, case_id):
 
 
 def get_case_details(request, context, app_name, form_code, case_id):
-
     template_name = "base/app_case_details.html"
     case_instance = context["case_instance"]
-    TaskInstance = case_instance.get_task_instances_model()
-    TaskInstanceForm = create_dynamic_task_instance_form(TaskInstance)
+    mini_app = context["mini_app"]
     if case_instance is None:
         return redirect("app:app_home", app_name)
+
+    # set up the case form section details
+
+    section_datas = (
+        case_instance.case_data_case.all()
+        .values("form_section__json_template", "section_data")
+        .order_by("form_section__index")
+    )
+    context["section_datas"] = json.dumps(list(section_datas), cls=CustomJSONEncoder)
+
+    # set up the task list data
+    TaskInstance = case_instance.get_task_instances_model()
     task_fields = (
         TaskInstance.selected_fields_info()
-    )  # need to bre replace with a config table to maintains the field list like model dict
+    )  # need to be replace with a config table to maintains the field list like model dict
     task_fields_names = list(task_fields.keys())
     context["task_fields"] = task_fields
 
@@ -123,17 +133,10 @@ def get_case_details(request, context, app_name, form_code, case_id):
     else:
         context["task_instances"] = []
 
-    section_datas = (
-        case_instance.case_data_case.all()
-        .values("form_section__json_template", "section_data")
-        .order_by("form_section__index")
-    )
-    context["section_datas"] = json.dumps(list(section_datas), cls=CustomJSONEncoder)
-
-    # role_unit setup was not correct, it includes the permissions (userManagement.CustomGroup) that has permission tho this page
-    # # role_unit includes the permissions (userManagement.CustomGroup) that the user has in this page
-    # role_unit = request.current_page_menu.get('role_unit', [])
-    # role_unit_ids = [ r.get('permission_role__id') for r in role_unit ]
+    # set up the task instance form for the case details page
+    role_unit = request.current_page_menu.get("role_unit", [])
+    role_unit_ids = [r.get("permission_role__id") for r in role_unit]
+    TaskInstanceForm = create_dynamic_task_instance_form(TaskInstance)
 
     if case_instance.workflow_instance is not None and request.method == "POST":
         pending_task_forms = [
@@ -147,13 +150,14 @@ def get_case_details(request, context, app_name, form_code, case_id):
             for ti in tasks_queryset.filter(
                 Q(is_active=True)
                 & (
-                    Q(assign_to__in=request.user.permissions.all())
+                    Q(assign_to__id__in=role_unit_ids)
                     | Q(is_active=request.user.is_superuser)
                 )
             )
         ]
         forms_is_valid = True
         for task_form in pending_task_forms:
+            task_form.pre_clean_validation(mini_app, case_instance)
             if not task_form.is_valid():
                 forms_is_valid = False
         if forms_is_valid:
@@ -169,6 +173,7 @@ def get_case_details(request, context, app_name, form_code, case_id):
                         task.save()
                         logger.debug(e)
                         messages.error(request, e)
+                    raise Exception(e)
             return redirect("app:app_case_details", app_name, form_code, case_id)
         else:
             context["pending_task_forms"] = pending_task_forms
@@ -180,32 +185,30 @@ def get_case_details(request, context, app_name, form_code, case_id):
             for ti in tasks_queryset.filter(
                 Q(is_active=True)
                 & (
-                    Q(assign_to__in=request.user.permissions.all())
+                    Q(assign_to__id__in=role_unit_ids)
                     | Q(is_active=request.user.is_superuser)
                 )
             )
         ]
+
     # audit history setting
-    # path('app/<str:app_name>/cases/search/<str:form_code>/details/history/<int:case_id>##', request_decorator(get_case_details_history_json), name='app_case_details_history'), # app:app_case_details
     context["history_data_url"] = reverse(
         "api:app_case_details_history", args=[app_name, form_code, case_id]
     )
     context["history_fields"] = get_audit_history_fields()
+
     # document settings
     file_fields = (
         FileModel.selected_fields_info()
-    )  # need to bre replace with a config table to maintains the field list like model dict
+    )  # need to be replace with a config table to maintains the field list like model dict
     related_name = "%s_%s_files" % (
         TaskInstance._meta.app_label.lower(),
         TaskInstance._meta.model_name,
     )
     file_fields["%s__task__name" % related_name] = "Task Name"
-
-    # path('app/<str:app_name>/cases/search/<str:form_code>/details/documents/<int:case_id>##', request_decorator(get_case_details_documents_json), name='app_case_details_documents'), # app:app_case_details
     context["file_data_url"] = reverse(
         "api:app_case_details_documents", args=[app_name, form_code, case_id]
     )
-    # path('app/<str:app_name>/cases/<str:form_code>/file-download/<int:case_id>-filter/<str:file_id>-filter', get_case_details_file_download_view, name='app_case_details_file_download'), # app:app_case_details
     context["file_download_url"] = reverse(
         "api:app_case_details_file_download", args=[app_name, form_code, case_id, "0"]
     )

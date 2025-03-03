@@ -19,7 +19,7 @@ from django.urls import path, include, re_path
 from django.contrib import admin
 from django.apps import apps
 from django.contrib.auth import views as auth_views
-
+from userManagement import views as user_views
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -32,6 +32,7 @@ urlpatterns = [
     path("api/", include("base.urls_api", namespace="api")),
     path("forms/", include("jsonForm.urls", namespace="jsonForm")),
     path("user/", include("userManagement.urls", namespace="userManagement")),
+    path("accounts/profile/", user_views.get_user_profile_view, name="user_profile"),
     path(
         "accounts/login/",
         auth_views.LoginView.as_view(template_name="accounts/login.html"),
@@ -79,9 +80,6 @@ urlpatterns = [
         name="password_reset_complete",
     ),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 admin.site.site_header = settings.SITE_NAME
 admin.site.site_title = settings.SITE_NAME

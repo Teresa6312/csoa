@@ -28,6 +28,11 @@ from django.core.paginator import Paginator
 from django.http import Http404
 from .cache import global_cache_decorator
 from django.conf import settings
+import inspect
+from functools import wraps
+from django.utils import timezone as django_timezone
+import pytz
+
 
 # from django.core.serializers.json import DjangoJSONEncoder as CustomJSONEncoder # for datetime serialization
 
@@ -35,10 +40,27 @@ logger = logging.getLogger("django")
 
 
 class CustomJSONEncoder(json.JSONEncoder):
+    # def __init__(self, *args, timezone=None, request=None, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     # Use explicit timezone if provided, else fallback to Django's current timezone
+    #     user_info = request.session.get("user_info", None) if request else None
+    #     user_timezone = (
+    #         pytz.timezone(user_info.get("timezone", "UTC")) if user_info else None
+    #     )
+    #     self.timezone = (
+    #         timezone or user_timezone or django_timezone.get_current_timezone()
+    #     )
+
     def default(self, obj):
-        if isinstance(obj, (datetime)):
+        if isinstance(obj, datetime):
+            # # Ensure the datetime is timezone-aware
+            # if not obj.tzinfo:
+            #     obj = django_timezone.make_aware(obj, django_timezone.utc)
             return obj.strftime("%m/%d/%Y %H:%M:%S")
         if isinstance(obj, (date)):
+            # # Ensure the datetime is timezone-aware
+            # if not obj.tzinfo:
+            #     obj = django_timezone.make_aware(obj, django_timezone.utc)
             return obj.strftime("%m/%d/%Y")
         if isinstance(obj, uuid.UUID):
             return str(obj)
@@ -109,8 +131,11 @@ def send_email(request, subject, to_email_address, content, attachments=[]):
                 messages.error(request, ("No file found!"))
         email.send()
     except Exception as e:
-        logger.error(e)
-        messages.error(request, ("System error!"))
+        rqa = f"Error sending email: {e}"
+        logger.exception(e)
+        raise Exception(rqa)
+
+        # messages.error(request, ("System error!"))
 
 
 # Create a custom function to cast the UUID to a string. Different database may has a little different
@@ -361,10 +386,15 @@ def get_object_or_redirect(model, *args, message="Data object not found.", **kwa
         raise ValueError("System Error")
 
 
-def method_model_to_dict(model_object):
+# model_to_dict Only applicable to the data has no ManyToManyField with other data
+def model_to_json_dump(model_object, timezone=None, request=None):
     # Using model_to_dict and json.dumps
-    workflow_dict = model_to_dict(model_object)
-    return json.dumps(workflow_dict)
+    model_dict = model_to_dict(
+        model_object, fields=[field.name for field in model_object._meta.fields]
+    )
+    return json.dumps(
+        model_dict, cls=CustomJSONEncoder, timezone=timezone, request=request
+    )
 
 
 def get_menu_key_in_list(sub_menu: list, parent_key=None):
@@ -380,15 +410,6 @@ def get_menu_key_in_list(sub_menu: list, parent_key=None):
         if len(menu.get("sub_menu", [])) > 0:
             result += get_menu_key_in_list(new_sub_menu, key)
     return result
-
-
-import json
-from django.conf import settings
-
-# def load_form_config():
-#     config_path = settings.BASE_DIR / 'reference' / 'form_template.json'
-#     with open(config_path, 'r', encoding='utf-8') as f:
-#         return json.load(f)
 
 
 def validate_form_data(form_data, config):
@@ -480,3 +501,23 @@ def normalized_url(path):
     if new_path == "":
         new_path = path
     return new_path
+
+
+@global_cache_decorator(cache_key="csoa_app_list", timeout=settings.CACHE_TIMEOUT_L3)
+def get_app_list():
+    installed_apps = apps.get_models()
+    app_list = set()
+    for app in installed_apps:
+        app_list.add(app._meta.app_label)
+    return list(app_list)
+
+
+@global_cache_decorator(cache_key="csoa_model_list", timeout=settings.CACHE_TIMEOUT_L3)
+def get_model_list():
+    installed_apps = settings.INSTALLED_APPS  # List of app names/paths as strings
+    model_list = set()
+    for app in installed_apps:
+        models = apps.get_models(app)  # Get models for each app
+        for model in models:
+            model_list.add(model.__name__)  # Append model name to the list
+    return list(model_list)

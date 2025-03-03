@@ -132,7 +132,7 @@ function setupDisplayConditions(parentKey, parentConfig, allFields) {
         const subField = condition.field;
         const subConfig = allFields[subField];
         if (!subConfig) {
-            console.error(`未定义的子字段配置: ${subField}`);
+            console.error(`No config for: ${subField}`);
             return;
         }
 
@@ -159,7 +159,7 @@ function getInputValueFromContainer(triggerElement) {
     // 查找第一个输入元素（支持 input/select）
     const inputElement = triggerElement.querySelector('input, select, textarea');
     if (!inputElement) {
-        console.error(`容器 ${containerId} 内未找到输入元素`);
+        console.error(`Container ${containerId} does not contain a valid input element`);
         return null;
     }
     switch(inputElement.tagName.toLowerCase()) {
@@ -191,7 +191,7 @@ function getInputValueFromContainer(triggerElement) {
         return inputElement.value;
 
         default:
-        console.error('不支持的输入类型:', inputElement.tagName);
+        console.error('Does not support this type of input element type:', inputElement.tagName);
         return null;
     }
 }
@@ -201,7 +201,7 @@ function updateDisplayedFields(parentKey, parentContainer, parentConfig) {
     // 评估所有显示条件
     parentConfig.to_display_conditions.forEach(conditionConfig => {
         if (evaluateConditionGroup(parentValue, conditionConfig)) {
-            console.log(conditionConfig, "条件满足，显示字段:" , conditionConfig.field);
+            console.log(conditionConfig, "Condition valid for:" , conditionConfig.field);
             showConditionalField(parentKey,conditionConfig.field);
         }
         else {
@@ -209,7 +209,7 @@ function updateDisplayedFields(parentKey, parentContainer, parentConfig) {
             if (element) {
                 element.remove();
             }
-            console.log(conditionConfig,"条件不满足，隐藏字段:", conditionConfig.field);
+            console.log(conditionConfig,"Condition invalid for:", conditionConfig.field);
         }
     });
 }
@@ -439,7 +439,7 @@ function handleStringOperation(value, operator, expected) {
 function showConditionalField(parentKey,fieldKey) {
     const cached = pendingFields.get(fieldKey);
     if (!cached) {
-        console.warn(`未注册的条件字段: ${fieldKey}`);
+        console.warn(`未注册的条件字段 / Unregistered conditional field: ${fieldKey}`);
         return;
     }
 
@@ -477,7 +477,7 @@ function updateOptions(fieldValue, fieldKey, fieldConfig, connectedField, connec
     // 查找第一个输入元素（支持 select）
     const connectedInputElement = connectedBlock.querySelector('select');
     if (!connectedInputElement) {
-        console.error(`容器 ${containerId} 内未找到输入元素`);
+        console.error(`容器 ${containerId} 内未找到输入元素 / No input element found in container ${containerId}`);
         return null;
     }
     // 实际应从options_map获取动态数据

@@ -1,0 +1,1685 @@
+[
+  {
+    "id": 2,
+    "key": "jsonForm",
+    "label": "Request Form",
+    "link": "/forms/",
+    "icon": "fa fa-file-text",
+    "sub_menu": [
+      {
+        "id": 108,
+        "key": "view",
+        "label": "view",
+        "link": "/forms/view",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 110,
+            "key": "workflow",
+            "label": "Workflow",
+            "link": null,
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 108,
+            "parent_app_menu__key": "view",
+            "unit_control": false,
+            "role_unit": []
+          }
+        ],
+        "menu_level": 2,
+        "parent_app_menu__id": 2,
+        "parent_app_menu__key": "jsonForm",
+        "unit_control": false,
+        "role_unit": []
+      },
+      {
+        "id": 109,
+        "key": "workflow",
+        "label": "Workflow",
+        "link": "/forms/workflow",
+        "icon": null,
+        "sub_menu": [],
+        "menu_level": 2,
+        "parent_app_menu__id": 2,
+        "parent_app_menu__key": "jsonForm",
+        "unit_control": false,
+        "role_unit": []
+      }
+    ],
+    "menu_level": 0,
+    "parent_app_menu__id": null,
+    "parent_app_menu__key": null,
+    "unit_control": false,
+    "role_unit": []
+  },
+  {
+    "id": 12,
+    "key": "testUserProfile",
+    "label": "User Profile",
+    "link": "/app/testUserProfile/home",
+    "icon": "fa fa-users",
+    "sub_menu": [
+      {
+        "id": 13,
+        "key": "myCase",
+        "label": "My Cases",
+        "link": "/app/testUserProfile/my-cases",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 14,
+            "key": "createCaseIDR_002",
+            "label": "File IDR-002 reqeust",
+            "link": "/app/testUserProfile/forms/add/IDR_002",
+            "icon": "fa fa-plus",
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 13,
+            "parent_app_menu__key": "myCase",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 15,
+            "key": "createCaseIDR_001",
+            "label": "File IDR-001 reqeust",
+            "link": "/app/testUserProfile/forms/add/IDR_001",
+            "icon": "fa fa-plus",
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 13,
+            "parent_app_menu__key": "myCase",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 16,
+            "key": "todoList",
+            "label": "To-Do List",
+            "link": "/app/testUserProfile/my-cases/todoList",
+            "icon": null,
+            "sub_menu": [
+              {
+                "id": 121,
+                "key": "edit",
+                "label": "Edit",
+                "link": null,
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 16,
+                "parent_app_menu__key": "todoList",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 122,
+                "key": "details",
+                "label": "Details",
+                "link": null,
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 16,
+                "parent_app_menu__key": "todoList",
+                "unit_control": false,
+                "role_unit": []
+              }
+            ],
+            "menu_level": 2,
+            "parent_app_menu__id": 13,
+            "parent_app_menu__key": "myCase",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 17,
+            "key": "ongoingList",
+            "label": "Ongoing List",
+            "link": "/app/testUserProfile/my-cases/ongoingList",
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 13,
+            "parent_app_menu__key": "myCase",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 18,
+            "key": "completedList",
+            "label": "Completed List",
+            "link": "/app/testUserProfile/my-cases/completedList",
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 13,
+            "parent_app_menu__key": "myCase",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 72,
+            "key": "editCaseIDR_002",
+            "label": "Edit",
+            "link": "/app/testUserProfile/my-cases/IDR_002/edit",
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 13,
+            "parent_app_menu__key": "myCase",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 116,
+            "key": "createCaseerror_inventory",
+            "label": "File an Error record",
+            "link": "/app/testUserProfile/forms/add/error_inventory",
+            "icon": "fa fa-plus",
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 13,
+            "parent_app_menu__key": "myCase",
+            "unit_control": false,
+            "role_unit": []
+          }
+        ],
+        "menu_level": 1,
+        "parent_app_menu__id": 12,
+        "parent_app_menu__key": "testUserProfile",
+        "unit_control": false,
+        "role_unit": []
+      },
+      {
+        "id": 20,
+        "key": "Reference",
+        "label": "Reference-Department",
+        "link": "/app/testUserProfile/model/department-list",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 74,
+            "key": "details",
+            "label": "Details",
+            "link": "/app/testUserProfile/model/department-list/details",
+            "icon": null,
+            "sub_menu": [
+              {
+                "id": 75,
+                "key": "user-list",
+                "label": "Employee user",
+                "link": "/app/testUserProfile/model/department-list/details/user-list",
+                "icon": null,
+                "sub_menu": [
+                  {
+                    "id": 99,
+                    "key": "details",
+                    "label": "details",
+                    "link": null,
+                    "icon": null,
+                    "sub_menu": [],
+                    "menu_level": 4,
+                    "parent_app_menu__id": 75,
+                    "parent_app_menu__key": "user-list",
+                    "unit_control": false,
+                    "role_unit": []
+                  },
+                  {
+                    "id": 100,
+                    "key": "exportCsv",
+                    "label": "Export cSV",
+                    "link": null,
+                    "icon": null,
+                    "sub_menu": [],
+                    "menu_level": 4,
+                    "parent_app_menu__id": 75,
+                    "parent_app_menu__key": "user-list",
+                    "unit_control": false,
+                    "role_unit": []
+                  }
+                ],
+                "menu_level": 3,
+                "parent_app_menu__id": 74,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              }
+            ],
+            "menu_level": 2,
+            "parent_app_menu__id": 20,
+            "parent_app_menu__key": "Reference",
+            "unit_control": false,
+            "role_unit": []
+          }
+        ],
+        "menu_level": 1,
+        "parent_app_menu__id": 12,
+        "parent_app_menu__key": "testUserProfile",
+        "unit_control": false,
+        "role_unit": []
+      },
+      {
+        "id": 21,
+        "key": "reference_dict",
+        "label": "Reference Dictionary",
+        "link": "/app/testUserProfile/model/dictionary-item-list",
+        "icon": null,
+        "sub_menu": [],
+        "menu_level": 1,
+        "parent_app_menu__id": 12,
+        "parent_app_menu__key": "testUserProfile",
+        "unit_control": false,
+        "role_unit": []
+      },
+      {
+        "id": 26,
+        "key": "formIDR_002Search",
+        "label": "Search Form IDR-002",
+        "link": "/app/testUserProfile/cases/search/IDR_002",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 93,
+            "key": "exportCsv",
+            "label": "Export Csv",
+            "link": null,
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 26,
+            "parent_app_menu__key": "formIDR_002Search",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 94,
+            "key": "details",
+            "label": "Details",
+            "link": null,
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 26,
+            "parent_app_menu__key": "formIDR_002Search",
+            "unit_control": false,
+            "role_unit": []
+          }
+        ],
+        "menu_level": 1,
+        "parent_app_menu__id": 12,
+        "parent_app_menu__key": "testUserProfile",
+        "unit_control": false,
+        "role_unit": []
+      },
+      {
+        "id": 27,
+        "key": "formIDR_001Search",
+        "label": "Search Form IDR-001",
+        "link": "/app/testUserProfile/cases/search/IDR_001",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 73,
+            "key": "details",
+            "label": "Details",
+            "link": "/app/testUserProfile/cases/IDR_001/details",
+            "icon": null,
+            "sub_menu": [
+              {
+                "id": 77,
+                "key": "documentsTab",
+                "label": "Documents",
+                "link": "/app/testUserProfile/cases/IDR_001/details/documents",
+                "icon": null,
+                "sub_menu": [
+                  {
+                    "id": 91,
+                    "key": "exportCsv",
+                    "label": "Export Csv",
+                    "link": null,
+                    "icon": null,
+                    "sub_menu": [],
+                    "menu_level": 4,
+                    "parent_app_menu__id": 77,
+                    "parent_app_menu__key": "documentsTab",
+                    "unit_control": false,
+                    "role_unit": []
+                  }
+                ],
+                "menu_level": 3,
+                "parent_app_menu__id": 73,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 78,
+                "key": "tasksTab",
+                "label": "Tasks",
+                "link": null,
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 73,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 79,
+                "key": "historyTab",
+                "label": "History",
+                "link": "/app/testUserProfile/cases/IDR_001/details/history",
+                "icon": null,
+                "sub_menu": [
+                  {
+                    "id": 90,
+                    "key": "exportCsv",
+                    "label": "Export Csv",
+                    "link": null,
+                    "icon": null,
+                    "sub_menu": [],
+                    "menu_level": 4,
+                    "parent_app_menu__id": 79,
+                    "parent_app_menu__key": "historyTab",
+                    "unit_control": false,
+                    "role_unit": []
+                  }
+                ],
+                "menu_level": 3,
+                "parent_app_menu__id": 73,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 80,
+                "key": "workflow",
+                "label": "Workflow",
+                "link": "/app/testuserprofile/cases/workflow/idr_001",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 73,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              }
+            ],
+            "menu_level": 2,
+            "parent_app_menu__id": 27,
+            "parent_app_menu__key": "formIDR_001Search",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 92,
+            "key": "exportCsv",
+            "label": "Export Csv",
+            "link": null,
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 27,
+            "parent_app_menu__key": "formIDR_001Search",
+            "unit_control": false,
+            "role_unit": []
+          }
+        ],
+        "menu_level": 1,
+        "parent_app_menu__id": 12,
+        "parent_app_menu__key": "testUserProfile",
+        "unit_control": false,
+        "role_unit": []
+      },
+      {
+        "id": 103,
+        "key": "test_file_model",
+        "label": "testing",
+        "link": "/app/testUserProfile/model/test_file_model",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 104,
+            "key": "details",
+            "label": "Details",
+            "link": "/app/testuserprofile/model/test_file_model/details",
+            "icon": null,
+            "sub_menu": [
+              {
+                "id": 105,
+                "key": "file_list",
+                "label": "Files(s)",
+                "link": "/app/testuserprofile/model/test_file_model/details/file_list",
+                "icon": null,
+                "sub_menu": [
+                  {
+                    "id": 106,
+                    "key": "download",
+                    "label": "Download",
+                    "link": "/app/testUserProfile/model/test_file_model/file-download",
+                    "icon": null,
+                    "sub_menu": [],
+                    "menu_level": 4,
+                    "parent_app_menu__id": 105,
+                    "parent_app_menu__key": "file_list",
+                    "unit_control": false,
+                    "role_unit": []
+                  }
+                ],
+                "menu_level": 3,
+                "parent_app_menu__id": 104,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              }
+            ],
+            "menu_level": 2,
+            "parent_app_menu__id": 103,
+            "parent_app_menu__key": "test_file_model",
+            "unit_control": false,
+            "role_unit": []
+          }
+        ],
+        "menu_level": 1,
+        "parent_app_menu__id": 12,
+        "parent_app_menu__key": "testUserProfile",
+        "unit_control": false,
+        "role_unit": []
+      }
+    ],
+    "menu_level": 0,
+    "parent_app_menu__id": null,
+    "parent_app_menu__key": null,
+    "unit_control": false,
+    "role_unit": []
+  },
+  {
+    "id": 41,
+    "key": "expensePaymentSystem4",
+    "label": "Expense Payment System",
+    "link": "/app/expensePaymentSystem4/home",
+    "icon": "fa fa-money",
+    "sub_menu": [
+      {
+        "id": 42,
+        "key": "my-cases",
+        "label": "My Cases",
+        "link": "/app/expensePaymentSystem4/my-cases",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 43,
+            "key": "todoList",
+            "label": "To-do List",
+            "link": null,
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 42,
+            "parent_app_menu__key": "my-cases",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 44,
+            "key": "ongoingList",
+            "label": "Ongoing List",
+            "link": null,
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 42,
+            "parent_app_menu__key": "my-cases",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 45,
+            "key": "completedList",
+            "label": "Completed List",
+            "link": null,
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 42,
+            "parent_app_menu__key": "my-cases",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 48,
+            "key": "createCaseExpenseForm04",
+            "label": "Create Expense Form 04",
+            "link": "/app/expensePaymentSystem4/forms/add/expenseForm04",
+            "icon": "fa fa-plus",
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 42,
+            "parent_app_menu__key": "my-cases",
+            "unit_control": false,
+            "role_unit": []
+          }
+        ],
+        "menu_level": 1,
+        "parent_app_menu__id": 41,
+        "parent_app_menu__key": "expensePaymentSystem4",
+        "unit_control": false,
+        "role_unit": []
+      },
+      {
+        "id": 47,
+        "key": "searchexpenseForm04",
+        "label": "Search Expense Form",
+        "link": "/app/expensePaymentSystem4/cases/search/expenseForm04",
+        "icon": null,
+        "sub_menu": [],
+        "menu_level": 1,
+        "parent_app_menu__id": 41,
+        "parent_app_menu__key": "expensePaymentSystem4",
+        "unit_control": false,
+        "role_unit": []
+      }
+    ],
+    "menu_level": 0,
+    "parent_app_menu__id": null,
+    "parent_app_menu__key": null,
+    "unit_control": false,
+    "role_unit": []
+  },
+  {
+    "id": 56,
+    "key": "originationHierarchy",
+    "label": "Origination hierarchy",
+    "link": "/app/originationHierarchy/home",
+    "icon": "fa fa-sitemap",
+    "sub_menu": [
+      {
+        "id": 57,
+        "key": "companyList",
+        "label": "Company",
+        "link": "/app/originationHierarchy/model/company-list",
+        "icon": null,
+        "sub_menu": [],
+        "menu_level": 1,
+        "parent_app_menu__id": 56,
+        "parent_app_menu__key": "originationHierarchy",
+        "unit_control": false,
+        "role_unit": []
+      },
+      {
+        "id": 58,
+        "key": "departmentList",
+        "label": "Departments",
+        "link": "/app/originationHierarchy/model/department-list",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 95,
+            "key": "exportCsv",
+            "label": "Export Csv",
+            "link": null,
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 58,
+            "parent_app_menu__key": "departmentList",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 96,
+            "key": "details",
+            "label": "Details",
+            "link": "/app/originationhierarchy/model/department-list/details",
+            "icon": null,
+            "sub_menu": [
+              {
+                "id": 97,
+                "key": "user-list",
+                "label": "User List",
+                "link": "/app/originationhierarchy/model/department-list/details/user-list",
+                "icon": null,
+                "sub_menu": [
+                  {
+                    "id": 101,
+                    "key": "details",
+                    "label": "Details",
+                    "link": "/app/originationhierarchy/model/user-list/details",
+                    "icon": null,
+                    "sub_menu": [],
+                    "menu_level": 4,
+                    "parent_app_menu__id": 97,
+                    "parent_app_menu__key": "user-list",
+                    "unit_control": false,
+                    "role_unit": []
+                  },
+                  {
+                    "id": 102,
+                    "key": "exportCsv",
+                    "label": "Export Csv",
+                    "link": null,
+                    "icon": null,
+                    "sub_menu": [],
+                    "menu_level": 4,
+                    "parent_app_menu__id": 97,
+                    "parent_app_menu__key": "user-list",
+                    "unit_control": false,
+                    "role_unit": []
+                  }
+                ],
+                "menu_level": 3,
+                "parent_app_menu__id": 96,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 98,
+                "key": "team-list",
+                "label": "Team List",
+                "link": "/app/originationhierarchy/model/department-list/details/team-list",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 96,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              }
+            ],
+            "menu_level": 2,
+            "parent_app_menu__id": 58,
+            "parent_app_menu__key": "departmentList",
+            "unit_control": false,
+            "role_unit": []
+          }
+        ],
+        "menu_level": 1,
+        "parent_app_menu__id": 56,
+        "parent_app_menu__key": "originationHierarchy",
+        "unit_control": false,
+        "role_unit": []
+      },
+      {
+        "id": 59,
+        "key": "userList",
+        "label": "Employees",
+        "link": "/app/originationHierarchy/model/user-list",
+        "icon": null,
+        "sub_menu": [],
+        "menu_level": 1,
+        "parent_app_menu__id": 56,
+        "parent_app_menu__key": "originationHierarchy",
+        "unit_control": false,
+        "role_unit": []
+      },
+      {
+        "id": 60,
+        "key": "team",
+        "label": "Teams",
+        "link": "/app/originationHierarchy/model/team-list",
+        "icon": null,
+        "sub_menu": [],
+        "menu_level": 1,
+        "parent_app_menu__id": 56,
+        "parent_app_menu__key": "originationHierarchy",
+        "unit_control": false,
+        "role_unit": []
+      }
+    ],
+    "menu_level": 0,
+    "parent_app_menu__id": null,
+    "parent_app_menu__key": null,
+    "unit_control": false,
+    "role_unit": []
+  },
+  {
+    "id": 63,
+    "key": "lgoOaSystem",
+    "label": "LGO OA System",
+    "link": "/app/lgoOaSystem/home",
+    "icon": "fa fa-legal",
+    "sub_menu": [
+      {
+        "id": 64,
+        "key": "my_cases",
+        "label": "My Requests",
+        "link": "/app/lgoOaSystem/my-cases",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 65,
+            "key": "todoList",
+            "label": "To-do List",
+            "link": "/app/lgoOaSystem/my-cases/todoList",
+            "icon": null,
+            "sub_menu": [
+              {
+                "id": 111,
+                "key": "details",
+                "label": "Details",
+                "link": null,
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 65,
+                "parent_app_menu__key": "todoList",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 112,
+                "key": "edit",
+                "label": "Edit",
+                "link": null,
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 65,
+                "parent_app_menu__key": "todoList",
+                "unit_control": false,
+                "role_unit": []
+              }
+            ],
+            "menu_level": 2,
+            "parent_app_menu__id": 64,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": [
+              {
+                "id": 5,
+                "name": "Department Manager",
+                "group_type": 6,
+                "permission_role__id": 370,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              },
+              {
+                "id": 11,
+                "name": "Dept.Reviewer",
+                "group_type": 3,
+                "permission_role__id": 371,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "BOCNY",
+                "permission_role__company__id": 1,
+                "permission_role__department__short_name": "OSD",
+                "permission_role__department__id": 8,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              },
+              {
+                "id": 12,
+                "name": "Dept.Editer/Analyst/FLU/L1",
+                "group_type": 3,
+                "permission_role__id": 372,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              },
+              {
+                "id": 4,
+                "name": "Department Senior Manager",
+                "group_type": 8,
+                "permission_role__id": 374,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              }
+            ]
+          },
+          {
+            "id": 66,
+            "key": "ongoingList",
+            "label": "Ongoing List",
+            "link": "/app/lgoOaSystem/my-cases/ongoingList",
+            "icon": null,
+            "sub_menu": [
+              {
+                "id": 119,
+                "key": "details",
+                "label": "Details",
+                "link": null,
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 66,
+                "parent_app_menu__key": "ongoingList",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 120,
+                "key": "edit",
+                "label": "Edit",
+                "link": null,
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 66,
+                "parent_app_menu__key": "ongoingList",
+                "unit_control": false,
+                "role_unit": []
+              }
+            ],
+            "menu_level": 2,
+            "parent_app_menu__id": 64,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": [
+              {
+                "id": 5,
+                "name": "Department Manager",
+                "group_type": 6,
+                "permission_role__id": 370,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              },
+              {
+                "id": 11,
+                "name": "Dept.Reviewer",
+                "group_type": 3,
+                "permission_role__id": 371,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "BOCNY",
+                "permission_role__company__id": 1,
+                "permission_role__department__short_name": "OSD",
+                "permission_role__department__id": 8,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              },
+              {
+                "id": 12,
+                "name": "Dept.Editer/Analyst/FLU/L1",
+                "group_type": 3,
+                "permission_role__id": 372,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              },
+              {
+                "id": 4,
+                "name": "Department Senior Manager",
+                "group_type": 8,
+                "permission_role__id": 374,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              }
+            ]
+          },
+          {
+            "id": 67,
+            "key": "completedList",
+            "label": "Completed List",
+            "link": "/app/lgoOaSystem/my-cases/completedList",
+            "icon": null,
+            "sub_menu": [
+              {
+                "id": 117,
+                "key": "details",
+                "label": "Details",
+                "link": null,
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 67,
+                "parent_app_menu__key": "completedList",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 118,
+                "key": "edit",
+                "label": "Edit",
+                "link": null,
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 67,
+                "parent_app_menu__key": "completedList",
+                "unit_control": false,
+                "role_unit": []
+              }
+            ],
+            "menu_level": 2,
+            "parent_app_menu__id": 64,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": [
+              {
+                "id": 5,
+                "name": "Department Manager",
+                "group_type": 6,
+                "permission_role__id": 370,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              },
+              {
+                "id": 11,
+                "name": "Dept.Reviewer",
+                "group_type": 3,
+                "permission_role__id": 371,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "BOCNY",
+                "permission_role__company__id": 1,
+                "permission_role__department__short_name": "OSD",
+                "permission_role__department__id": 8,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              },
+              {
+                "id": 12,
+                "name": "Dept.Editer/Analyst/FLU/L1",
+                "group_type": 3,
+                "permission_role__id": 372,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              },
+              {
+                "id": 4,
+                "name": "Department Senior Manager",
+                "group_type": 8,
+                "permission_role__id": 374,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              }
+            ]
+          },
+          {
+            "id": 70,
+            "key": "createCaseLGO_LRF01",
+            "label": "Create Document Review Request Form",
+            "link": "/app/lgoOaSystem/forms/add/LGO_LRF01",
+            "icon": "fa fa-plus",
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 64,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": [
+              {
+                "id": 12,
+                "name": "Dept.Editer/Analyst/FLU/L1",
+                "group_type": 3,
+                "permission_role__id": 372,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              }
+            ]
+          },
+          {
+            "id": 81,
+            "key": "detailslgo_lrf01",
+            "label": "Details",
+            "link": null,
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 64,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 85,
+            "key": "editlgo_lrf01",
+            "label": "Edit",
+            "link": "/app/lgooasystem/my-cases/lgo_lrf01/edit",
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 64,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": [
+              {
+                "id": 12,
+                "name": "Dept.Editer/Analyst/FLU/L1",
+                "group_type": 3,
+                "permission_role__id": 372,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              }
+            ]
+          },
+          {
+            "id": 132,
+            "key": "createCasenew_temp",
+            "label": "Create new_temp",
+            "link": "/app/lgoOaSystem/forms/add/new_temp",
+            "icon": "fa fa-plus",
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 64,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 133,
+            "key": "detailsnew_temp",
+            "label": "Details",
+            "link": null,
+            "icon": null,
+            "sub_menu": [
+              {
+                "id": 135,
+                "key": "fileDownload",
+                "label": "Download",
+                "link": "/app/lgooasystem/cases/new_temp/file-download",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 133,
+                "parent_app_menu__key": "detailsnew_temp",
+                "unit_control": false,
+                "role_unit": []
+              }
+            ],
+            "menu_level": 2,
+            "parent_app_menu__id": 64,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 134,
+            "key": "editnew_temp",
+            "label": "Edit",
+            "link": "/app/lgooasystem/my-cases/new_temp/edit",
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 64,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": []
+          }
+        ],
+        "menu_level": 1,
+        "parent_app_menu__id": 63,
+        "parent_app_menu__key": "lgoOaSystem",
+        "unit_control": false,
+        "role_unit": [
+          {
+            "id": 5,
+            "name": "Department Manager",
+            "group_type": 6,
+            "permission_role__id": 370,
+            "permission_role__app__key": "lgoOaSystem",
+            "permission_role__company__short_name": "ADC",
+            "permission_role__company__id": 2,
+            "permission_role__department__short_name": "ADD",
+            "permission_role__department__id": 3,
+            "permission_role__team__short_name": null,
+            "permission_role__team__id": null
+          },
+          {
+            "id": 11,
+            "name": "Dept.Reviewer",
+            "group_type": 3,
+            "permission_role__id": 371,
+            "permission_role__app__key": "lgoOaSystem",
+            "permission_role__company__short_name": "BOCNY",
+            "permission_role__company__id": 1,
+            "permission_role__department__short_name": "OSD",
+            "permission_role__department__id": 8,
+            "permission_role__team__short_name": null,
+            "permission_role__team__id": null
+          },
+          {
+            "id": 12,
+            "name": "Dept.Editer/Analyst/FLU/L1",
+            "group_type": 3,
+            "permission_role__id": 372,
+            "permission_role__app__key": "lgoOaSystem",
+            "permission_role__company__short_name": "ADC",
+            "permission_role__company__id": 2,
+            "permission_role__department__short_name": "ADD",
+            "permission_role__department__id": 3,
+            "permission_role__team__short_name": null,
+            "permission_role__team__id": null
+          },
+          {
+            "id": 4,
+            "name": "Department Senior Manager",
+            "group_type": 8,
+            "permission_role__id": 374,
+            "permission_role__app__key": "lgoOaSystem",
+            "permission_role__company__short_name": "ADC",
+            "permission_role__company__id": 2,
+            "permission_role__department__short_name": "ADD",
+            "permission_role__department__id": 3,
+            "permission_role__team__short_name": null,
+            "permission_role__team__id": null
+          }
+        ]
+      },
+      {
+        "id": 69,
+        "key": "searchLGO_LRF01",
+        "label": "Search Document Review Request Form",
+        "link": "/app/lgoOaSystem/cases/search/LGO_LRF01",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 113,
+            "key": "details",
+            "label": "Details",
+            "link": "/app/lgoOaSystem/cases/LGO_LRF01/details",
+            "icon": null,
+            "sub_menu": [
+              {
+                "id": 142,
+                "key": "documentsTab",
+                "label": "Documents",
+                "link": "/app/lgooasystem/cases/lgo_lrf01/details/documents",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 113,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 143,
+                "key": "historyTab",
+                "label": "History",
+                "link": "/app/lgooasystem/cases/lgo_lrf01/details/history",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 113,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 144,
+                "key": "dataFileDownload",
+                "label": "Data File Download",
+                "link": "/app/lgoOaSystem/cases/lgo_lrf01/file-download",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 113,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 145,
+                "key": "fileDownload",
+                "label": "Download",
+                "link": "/app/lgooasystem/cases/lgo_lrf01/file-download",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 113,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 146,
+                "key": "tasksTab",
+                "label": "Tasks",
+                "link": null,
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 113,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 147,
+                "key": "workflow",
+                "label": "Workflow",
+                "link": "/app/lgooasystem/cases/workflow/lgo_lrf01",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 113,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              }
+            ],
+            "menu_level": 2,
+            "parent_app_menu__id": 69,
+            "parent_app_menu__key": "searchLGO_LRF01",
+            "unit_control": false,
+            "role_unit": [
+              {
+                "id": 11,
+                "name": "Dept.Reviewer",
+                "group_type": 3,
+                "permission_role__id": 371,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "BOCNY",
+                "permission_role__company__id": 1,
+                "permission_role__department__short_name": "OSD",
+                "permission_role__department__id": 8,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              },
+              {
+                "id": 12,
+                "name": "Dept.Editer/Analyst/FLU/L1",
+                "group_type": 3,
+                "permission_role__id": 372,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              },
+              {
+                "id": 5,
+                "name": "Department Manager",
+                "group_type": 6,
+                "permission_role__id": 370,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              }
+            ]
+          }
+        ],
+        "menu_level": 1,
+        "parent_app_menu__id": 63,
+        "parent_app_menu__key": "lgoOaSystem",
+        "unit_control": false,
+        "role_unit": [
+          {
+            "id": 5,
+            "name": "Department Manager",
+            "group_type": 6,
+            "permission_role__id": 370,
+            "permission_role__app__key": "lgoOaSystem",
+            "permission_role__company__short_name": "ADC",
+            "permission_role__company__id": 2,
+            "permission_role__department__short_name": "ADD",
+            "permission_role__department__id": 3,
+            "permission_role__team__short_name": null,
+            "permission_role__team__id": null
+          },
+          {
+            "id": 11,
+            "name": "Dept.Reviewer",
+            "group_type": 3,
+            "permission_role__id": 371,
+            "permission_role__app__key": "lgoOaSystem",
+            "permission_role__company__short_name": "BOCNY",
+            "permission_role__company__id": 1,
+            "permission_role__department__short_name": "OSD",
+            "permission_role__department__id": 8,
+            "permission_role__team__short_name": null,
+            "permission_role__team__id": null
+          },
+          {
+            "id": 12,
+            "name": "Dept.Editer/Analyst/FLU/L1",
+            "group_type": 3,
+            "permission_role__id": 372,
+            "permission_role__app__key": "lgoOaSystem",
+            "permission_role__company__short_name": "ADC",
+            "permission_role__company__id": 2,
+            "permission_role__department__short_name": "ADD",
+            "permission_role__department__id": 3,
+            "permission_role__team__short_name": null,
+            "permission_role__team__id": null
+          },
+          {
+            "id": 4,
+            "name": "Department Senior Manager",
+            "group_type": 8,
+            "permission_role__id": 374,
+            "permission_role__app__key": "lgoOaSystem",
+            "permission_role__company__short_name": "ADC",
+            "permission_role__company__id": 2,
+            "permission_role__department__short_name": "ADD",
+            "permission_role__department__id": 3,
+            "permission_role__team__short_name": null,
+            "permission_role__team__id": null
+          }
+        ]
+      },
+      {
+        "id": 131,
+        "key": "searchnew_temp",
+        "label": "Search new_temp",
+        "link": "/app/lgoOaSystem/cases/search/new_temp",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 136,
+            "key": "details",
+            "label": "Details",
+            "link": "/app/lgoOaSystem/cases/new_temp/details",
+            "icon": null,
+            "sub_menu": [
+              {
+                "id": 137,
+                "key": "dataFileDownload",
+                "label": "Data File Download",
+                "link": "/app/lgoOaSystem/cases/new_temp/file-download",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 136,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 138,
+                "key": "historyTab",
+                "label": "History",
+                "link": "/app/lgooasystem/cases/new_temp/details/history",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 136,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 139,
+                "key": "documentsTab",
+                "label": "Documents",
+                "link": "/app/lgooasystem/cases/new_temp/details/documents",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 136,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 140,
+                "key": "tasksTab",
+                "label": "Tasks",
+                "link": null,
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 136,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              },
+              {
+                "id": 141,
+                "key": "workflow",
+                "label": "Workflow",
+                "link": "/app/lgooasystem/cases/workflow/lgo_lrf01",
+                "icon": null,
+                "sub_menu": [],
+                "menu_level": 3,
+                "parent_app_menu__id": 136,
+                "parent_app_menu__key": "details",
+                "unit_control": false,
+                "role_unit": []
+              }
+            ],
+            "menu_level": 2,
+            "parent_app_menu__id": 131,
+            "parent_app_menu__key": "searchnew_temp",
+            "unit_control": false,
+            "role_unit": [
+              {
+                "id": 5,
+                "name": "Department Manager",
+                "group_type": 6,
+                "permission_role__id": 370,
+                "permission_role__app__key": "lgoOaSystem",
+                "permission_role__company__short_name": "ADC",
+                "permission_role__company__id": 2,
+                "permission_role__department__short_name": "ADD",
+                "permission_role__department__id": 3,
+                "permission_role__team__short_name": null,
+                "permission_role__team__id": null
+              }
+            ]
+          }
+        ],
+        "menu_level": 1,
+        "parent_app_menu__id": 63,
+        "parent_app_menu__key": "lgoOaSystem",
+        "unit_control": false,
+        "role_unit": [
+          {
+            "id": 5,
+            "name": "Department Manager",
+            "group_type": 6,
+            "permission_role__id": 370,
+            "permission_role__app__key": "lgoOaSystem",
+            "permission_role__company__short_name": "ADC",
+            "permission_role__company__id": 2,
+            "permission_role__department__short_name": "ADD",
+            "permission_role__department__id": 3,
+            "permission_role__team__short_name": null,
+            "permission_role__team__id": null
+          }
+        ]
+      }
+    ],
+    "menu_level": 0,
+    "parent_app_menu__id": null,
+    "parent_app_menu__key": null,
+    "unit_control": false,
+    "role_unit": [
+      {
+        "id": 5,
+        "name": "Department Manager",
+        "group_type": 6,
+        "permission_role__id": 370,
+        "permission_role__app__key": "lgoOaSystem",
+        "permission_role__company__short_name": "ADC",
+        "permission_role__company__id": 2,
+        "permission_role__department__short_name": "ADD",
+        "permission_role__department__id": 3,
+        "permission_role__team__short_name": null,
+        "permission_role__team__id": null
+      },
+      {
+        "id": 11,
+        "name": "Dept.Reviewer",
+        "group_type": 3,
+        "permission_role__id": 371,
+        "permission_role__app__key": "lgoOaSystem",
+        "permission_role__company__short_name": "BOCNY",
+        "permission_role__company__id": 1,
+        "permission_role__department__short_name": "OSD",
+        "permission_role__department__id": 8,
+        "permission_role__team__short_name": null,
+        "permission_role__team__id": null
+      },
+      {
+        "id": 12,
+        "name": "Dept.Editer/Analyst/FLU/L1",
+        "group_type": 3,
+        "permission_role__id": 372,
+        "permission_role__app__key": "lgoOaSystem",
+        "permission_role__company__short_name": "ADC",
+        "permission_role__company__id": 2,
+        "permission_role__department__short_name": "ADD",
+        "permission_role__department__id": 3,
+        "permission_role__team__short_name": null,
+        "permission_role__team__id": null
+      },
+      {
+        "id": 4,
+        "name": "Department Senior Manager",
+        "group_type": 8,
+        "permission_role__id": 374,
+        "permission_role__app__key": "lgoOaSystem",
+        "permission_role__company__short_name": "ADC",
+        "permission_role__company__id": 2,
+        "permission_role__department__short_name": "ADD",
+        "permission_role__department__id": 3,
+        "permission_role__team__short_name": null,
+        "permission_role__team__id": null
+      }
+    ]
+  },
+  {
+    "id": 123,
+    "key": "testCase",
+    "label": "Test Case",
+    "link": "/app/testCase/home",
+    "icon": null,
+    "sub_menu": [
+      {
+        "id": 125,
+        "key": "my_cases",
+        "label": "My Cases",
+        "link": "/app/testCase/my-cases",
+        "icon": null,
+        "sub_menu": [
+          {
+            "id": 126,
+            "key": "todoList",
+            "label": "To-do List",
+            "link": "/app/testcase/my-cases/todolist",
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 125,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 127,
+            "key": "ongoingList",
+            "label": "Ongoing List",
+            "link": "/app/testcase/my-cases/ongoingList",
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 125,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 128,
+            "key": "completedList",
+            "label": "Completed List",
+            "link": "/app/testcase/my-cases/completedList",
+            "icon": null,
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 125,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": []
+          },
+          {
+            "id": 130,
+            "key": "createCaseTest_Case",
+            "label": "Create testing",
+            "link": "/app/testCase/forms/add/Test_Case",
+            "icon": "fa fa-plus",
+            "sub_menu": [],
+            "menu_level": 2,
+            "parent_app_menu__id": 125,
+            "parent_app_menu__key": "my_cases",
+            "unit_control": false,
+            "role_unit": []
+          }
+        ],
+        "menu_level": 1,
+        "parent_app_menu__id": 123,
+        "parent_app_menu__key": "testCase",
+        "unit_control": false,
+        "role_unit": []
+      },
+      {
+        "id": 129,
+        "key": "searchTest_Case",
+        "label": "Search testing",
+        "link": "/app/testCase/cases/search/Test_Case",
+        "icon": null,
+        "sub_menu": [],
+        "menu_level": 1,
+        "parent_app_menu__id": 123,
+        "parent_app_menu__key": "testCase",
+        "unit_control": false,
+        "role_unit": []
+      }
+    ],
+    "menu_level": 0,
+    "parent_app_menu__id": null,
+    "parent_app_menu__key": null,
+    "unit_control": false,
+    "role_unit": []
+  }
+]

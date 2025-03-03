@@ -7,7 +7,11 @@ from .decorators import case_decorator, model_decorator, model_unit_decorator
 app_name = "app"
 urlpatterns = [
     path("", views.get_home_view, name="home"),
-    path("accounts/user-profile", views.get_user_profile_view, name="user_profile"),
+    path(
+        "admin-maintenance/model-data-import",
+        views.model_data_import_view,
+        name="maintenance",
+    ),
     path("app/<str:app_name>/home", views.get_app_home_view, name="app_home"),
     path(
         "app/<str:app_name>/forms/add/<str:form_code>",

@@ -281,14 +281,15 @@ def get_case_audit_history(case_instance):
         case_data_class.history.filter(id__in=case_data_ids), "Data", case_data_class
     )
     history_changes.extend(case_data_history)
-    task_instance_ids = (
-        case_instance.workflow_instance.task_instance_workflow_instance.all()
-    )
-    TaskInstance = case_instance.get_task_instances_model()
-    task_instance_history = get_audit_history(
-        TaskInstance.history.filter(id__in=task_instance_ids), "Task", TaskInstance
-    )
-    history_changes.extend(task_instance_history)
+    if case_instance.workflow_instance is not None:
+        task_instance_ids = (
+            case_instance.workflow_instance.task_instance_workflow_instance.all()
+        )
+        TaskInstance = case_instance.get_task_instances_model()
+        task_instance_history = get_audit_history(
+            TaskInstance.history.filter(id__in=task_instance_ids), "Task", TaskInstance
+        )
+        history_changes.extend(task_instance_history)
     return history_changes
 
 

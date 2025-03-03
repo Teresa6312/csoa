@@ -22,7 +22,7 @@ from django.db.models.functions import Coalesce, Cast
 from django.db.models import TextField
 from userManagement.models import AppMenu
 from .util_files import download_file
-
+from .constants import CASE_CANCELLED, CASE_COMPLETED
 import logging
 
 logger = logging.getLogger("django")
@@ -67,7 +67,7 @@ def get_my_cases_view_data(request, app_name, type):
                     is_submited=False,  # draft cases
                 )
             )
-            .exclude(status="Cancelled")
+            .exclude(status=CASE_CANCELLED)
             .distinct()
             .order_by("-updated_by")
         )
@@ -84,7 +84,7 @@ def get_my_cases_view_data(request, app_name, type):
                     workflow_instance__is_active=True,
                 )
             )
-            .exclude(status="Cancelled")
+            .exclude(status=CASE_CANCELLED)
             .distinct()
             .order_by("-updated_by")
         )
@@ -101,7 +101,7 @@ def get_my_cases_view_data(request, app_name, type):
                     workflow_instance__is_active=False,
                 )
             )
-            .exclude(status="Cancelled")
+            .exclude(status=CASE_CANCELLED)
             .distinct()
             .order_by("-updated_by")
         )
@@ -115,18 +115,82 @@ def get_my_cases_view_data(request, app_name, type):
 @api_view(["POST"])
 @case_decorator
 def get_cases_search_by_form_view_data(
-    request, context, app_name, form_code, app_id, form_id, index
+    request,
+    context,
+    app_name,
+    form_code,
+    app_id,
+    form_id,
+    index,
+    case_type=CASE_COMPLETED,
 ):
     form = context["form"]
     case_data_class = get_model_class(
         form.backend_app_label, form.backend_app_section_model
     )
+
     queryset = case_data_class.objects.filter(
         case__form__application=app_id,
         case__form=form_id,
         case__is_submited=True,
         form_section__index=index,
-    ).exclude(case__status="Cancelled")
+    )
+
+    user_info = (
+        request.session["user_info"]
+        if "user_info" in request.session
+        else request.user.get_user_info()
+    )
+    if not user_info.get("is_superuser", False):
+        mini_app = context["mini_app"]
+        role_unit = request.current_page_menu.get("role_unit", [])
+        role_unit_ids = [r.get("permission_role__id") for r in role_unit]
+        role_company_ids = [r.get("permission_role__company__id") for r in role_unit]
+        role_department_ids = [
+            r.get("permission_role__department__id") for r in role_unit
+        ]
+        role_team_ids = [r.get("permission_role__team__id") for r in role_unit]
+        if len(role_unit) == 0:
+            return False
+        if len(role_company_ids) > 0 and mini_app.control_type == "company":
+            queryset = queryset.filter(
+                case__case_department__company__id__in=role_company_ids
+            )
+        elif len(role_department_ids) > 0 and mini_app.control_type == "department":
+            parent_id_list = [
+                r.get("permission_role__company__id")
+                for r in role_unit
+                if r.get("permission_role__department__id") is None
+                and r.get("permission_role__company__id") is not None
+            ]
+            queryset = queryset.filter(
+                Q(case__case_department__id__in=role_department_ids)
+                | Q(case__case_department__company__id__in=parent_id_list)
+            )
+        elif len(role_team_ids) > 0 and mini_app.control_type == "team":
+            parent_id_list = [
+                r.get("permission_role__department__id")
+                for r in role_unit
+                if r.get("permission_role__team__id") is None
+                and r.get("permission_role__department__id") is not None
+            ]
+            grandparent_id_list = [
+                r.get("permission_role__company__id")
+                for r in role_unit
+                if r.get("permission_role__team__id") is None
+                and r.get("permission_role__department__id") is None
+                and r.get("permission_role__company__id") is not None
+            ]
+            queryset = queryset.filter(
+                Q(case__case_team__id__in=role_team_ids)
+                | Q(case__case_team__department__id__in=parent_id_list)
+                | Q(case__case_team__department__company__id__in=grandparent_id_list)
+            )
+    if case_type == CASE_COMPLETED:
+        queryset = queryset.filter(case__status=CASE_COMPLETED)
+    else:
+        queryset = queryset.exclude(case__status=CASE_CANCELLED)
+
     fields = case_data_class.selected_fields_info()
     headers = FormTemplate.get_headers_by_code(form_code)
     # to control form template that has more than one section

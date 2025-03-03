@@ -10,6 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+from .settings_local import *
+
+# from .settings_test import *
+# from .settings_production import *
+
 from pathlib import Path
 from celery.schedules import crontab
 import os
@@ -46,20 +51,23 @@ INSTALLED_APPS = [
     "simple_history",
     "rest_framework",  # Enable Django REST framework
     "django_jsonform",
-    # 'axes',
     # 'django_tables2',
     # 'explorer',
 ]
 
 MIDDLEWARE = [
+    "django.contrib.sessions.middleware.SessionMiddleware",  # Must come first
+    "django.middleware.common.CommonMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",  # Required for user auth
     "django.middleware.security.SecurityMiddleware",  # 放在最前面是最佳实践。它处理一些安全相关的设置，尽早应用可以提高安全性。
     "django.contrib.sessions.middleware.SessionMiddleware",  # 通常放在 CommonMiddleware 之前，因为它依赖于会话。
-    "django.middleware.common.CommonMiddleware",  # 处理一些通用的任务，比如 URL 重写、gzip 压缩等。
+    # "django.middleware.common.CommonMiddleware",  # 处理一些通用的任务，比如 URL 重写、gzip 压缩等。
     "django.middleware.csrf.CsrfViewMiddleware",  # 必须在 SessionMiddleware 之后，因为它使用会话来存储 CSRF token。
-    "django.contrib.auth.middleware.AuthenticationMiddleware",  # 在 SessionMiddleware 之后，它使用会话来验证用户身份。
+    # "django.contrib.auth.middleware.AuthenticationMiddleware",  # 在 SessionMiddleware 之后，它使用会话来验证用户身份。
     "django.contrib.messages.middleware.MessageMiddleware",  # 通常放在 AuthenticationMiddleware 之后，因为它可能需要访问用户信息。
     "django.middleware.clickjacking.XFrameOptionsMiddleware",  # 处理 clickjacking 攻击，位置一般放在安全相关的中间件之后。
     "simple_history.middleware.HistoryRequestMiddleware",  # 用于 simple_history 记录历史变更，位置通常放在与数据库操作相关的中间件之前。
+    # "django.middleware.timezone.TimezoneMiddleware", ????
     # 'django.contrib.admindocs.middleware.XViewMiddleware', # Enable admindocs ??
     # 'django.middleware.locale.LocaleMiddleware', # Enable localization ??
     # middleware to required user login
@@ -71,15 +79,13 @@ MIDDLEWARE = [
     # middleware to Ensure that multiple database operations are performed in one request
     # to avoid data inconsistency caused by failure of some operations
     "base.middleware.AtomicTransactionMiddleware",  # 这是一个很好的实践，它可以确保所有数据库操作都在一个事务中完成。  但需要仔细检查你的中间件和视图函数，确保所有涉及数据库操作的代码都在这个中间件的“包裹”之下。  如果有些数据库操作在事务之外，可能会导致数据不一致。
-    # # middleware to handle error pages
-    # 'base.middleware.CustomErrorHandlingMiddleware',
-    # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
-    # It only formats user lockout messages and renders Axes lockout responses
-    # on failed user authentication attempts from login views.
-    # If you do not want Axes to override the authentication response
-    # you can skip installing the middleware and use your own views.
-    # 'axes.middleware.AxesMiddleware',
 ]
+
+if DEBUG == False:
+    MIDDLEWARE.append(
+        "base.middleware.CustomErrorHandlingMiddleware"
+    )  # middleware to handle error pages
+
 
 ROOT_URLCONF = "csoa.urls"
 
@@ -107,8 +113,6 @@ WSGI_APPLICATION = "csoa.wsgi.application"
 
 
 AUTHENTICATION_BACKENDS = [
-    # AxesStandaloneBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
-    # 'axes.backends.AxesStandaloneBackend',
     # Django ModelBackend is the default authentication backend.
     "django.contrib.auth.backends.ModelBackend",
 ]
@@ -131,24 +135,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# AXES_FAILURE_LIMIT = 3
-# # This sets the number of allowed failed login attempts before a user is locked out.
-
-# AXES_COOLOFF_TIME = 6
-# # Specifies the cooldown time (in hours) before failed login attempts are reset.
-
-# AXES_ONLY_ADMIN_SITE = False
-# # If set to True, Axes will only apply the login attempt tracking and blocking to the Django admin site.
-
-# AXES_LOCKOUT_PARAMETERS = ["username"]
-# # Axes will lock users out based on their username. This can also be configured to include other parameters such as IP address and user agent.
-
-# AXES_ENABLE_ACCESS_FAILURE_LOG = True
-# # When enabled, this will log every failed login attempt to the database.
-
-# AXES_RESET_ON_SUCCESS = True
-# # If set to True, a successful login will reset the failed login attempts counter for that user.
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
@@ -163,18 +149,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "static/"
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
-STATIC_ROOT = BASE_DIR / "staticProd"
-
-MEDIA_URL = "/files/"  # URL prefix for media files
-MEDIA_ROOT = os.path.join(
-    BASE_DIR, "files"
-)  # File system path to the directory for storing media files
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20 MB in bytes
 FILE_UPLOAD_MAX_VOLUME = 10
@@ -212,20 +186,29 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-LOGIN_REDIRECT_URL = "/"  # Redirect to the home page after login
+# LOGIN_REDIRECT_URL = "/"  # Redirect to the home page after login
 
 # Session configuration
-SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "sessions"
 SESSION_COOKIE_AGE = 60 * 15  # session expire time, in seconds
 SESSION_EXPIRE_AT_BROWSER_CLOSE = (
     True  # Whether to expire the session when the user closes the browser
 )
+SESSION_SAVE_EVERY_REQUEST = True  # Whether to save the session data on every request
+
 
 CONN_MAX_AGE = 60  # The lifetime of a database connection, in seconds. Use 0 to close database connections at the end of each request.
 CONN_HEALTH_CHECKS = True  # Enable health checks for database connections
 CONN_HEALTH_CHECK_PERIOD = (
     30  # The number of seconds between database connection health checks
 )
+
+
+# # myproject/settings.py
+# CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+# CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+
 
 # Define the base directory for log files
 LOG_DIR = os.path.join(BASE_DIR, "logs")
@@ -250,7 +233,7 @@ LOGGING = {
     },
     "handlers": {
         "file": {
-            "level": "DEBUG",
+            "level": "DEBUG" if DEBUG else "ERROR",
             "class": "logging.handlers.TimedRotatingFileHandler",
             "filename": os.path.join(LOG_DIR, "logfile.log"),
             "when": "midnight",  # Rotate logs at midnight
@@ -259,7 +242,7 @@ LOGGING = {
             "formatter": "default",
         },
         "console": {
-            "level": "DEBUG",
+            "level": "DEBUG" if DEBUG else "ERROR",
             "class": "logging.StreamHandler",
             "formatter": "default",
         },
@@ -277,16 +260,31 @@ LOGGING = {
             "class": "django.utils.log.AdminEmailHandler",
             "filters": ["require_debug_false"],  # 仅在 DEBUG=False 时发送邮件
         },
+        "template_debug": {  # For redirection
+            "level": "DEBUG",
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": os.path.join(LOG_DIR, "template_errors.log"),
+            "when": "midnight",
+            "backupCount": 7,
+            "formatter": "default",
+        },
     },
     "loggers": {
         "django": {
             "handlers": ["file"],  # , 'console'
-            "level": "DEBUG",  # should I change to error level?
+            "level": "DEBUG" if DEBUG else "ERROR",
             "propagate": True,
+        },
+        "django.template": {  # Key change
+            "handlers": [
+                "template_debug"
+            ],  # For redirection (or ["file"] to keep in main logs)
+            "level": "WARNING",  # Use WARNING to suppress DEBUG logs
+            "propagate": False,
         },
         "django.db.backends": {
             "handlers": ["file", "console"],
-            "level": "DEBUG",
+            "level": "DEBUG" if DEBUG else "ERROR",
             "propagate": False,
         },
         "user_activity": {
@@ -298,6 +296,31 @@ LOGGING = {
             "handlers": ["file", "console"],
             "level": "WARNING",
             "propagate": False,
+        },
+    },
+}
+
+#
+# Redis Key format "%s:%s:%s" % (key_prefix, version, key)
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",  # Redis 服务器地址
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "DECODE_RESPONSES": True,  # Important for correct data handling
+            "SOCKET_TIMEOUT": 5,  # 连接超时时间
+        },
+        "TIMEOUT": CACHE_TIMEOUT_DEFAULT,
+        # 'KEY_PREFIX': 'global'  # Optional prefix to avoid namespacing issues
+    },
+    "sessions": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            # "PASSWORD": "your_redis_password",  # 如果有密码
+            "SOCKET_TIMEOUT": 5,  # 连接超时时间
         },
     },
 }

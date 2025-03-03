@@ -9,6 +9,7 @@ from django.contrib import messages
 from jsonForm.models import FormTemplate
 from functools import wraps
 from django.http import HttpResponseRedirect
+from . import constants
 
 import inspect
 import logging
@@ -22,28 +23,36 @@ def request_decorator(func):
         func_name = func.__name__
         func_module = inspect.getmodule(func)
         logger.debug(f"{func_module.__name__}.{func_name}")
-        try:
-            if request.method == "POST":
-                result = func(request, *args, **kwargs)
-                return result
-            else:
-                return JsonResponse(
-                    {"message_type": "error", "message": "Invalid request method"},
-                    status=400,
-                )
-        except ValidationError as e:
-            field_errors = [
-                {"name": field, "status": ", ".join(errors)}
-                for field, errors in e.message_dict.items()
-            ]
+        if request.method == "POST":
+            result = func(request, *args, **kwargs)
+            return result
+        else:
             return JsonResponse(
-                {"message_type": "error", "message": field_errors}, status=400
+                {"message_type": "error", "message": "Invalid request method"},
+                status=400,
             )
-        except Exception as e:
-            logger.error(str(e))
-            return JsonResponse(
-                {"message_type": "error", "message": "System Error"}, status=500
-            )
+        # try:
+        #     if request.method == "POST":
+        #         result = func(request, *args, **kwargs)
+        #         return result
+        #     else:
+        #         return JsonResponse(
+        #             {"message_type": "error", "message": "Invalid request method"},
+        #             status=400,
+        #         )
+        # except ValidationError as e:
+        #     field_errors = [
+        #         {"name": field, "status": ", ".join(errors)}
+        #         for field, errors in e.message_dict.items()
+        #     ]
+        #     return JsonResponse(
+        #         {"message_type": "error", "message": field_errors}, status=400
+        #     )
+        # except Exception as e:
+        #     logger.error(str(e))
+        #     return JsonResponse(
+        #         {"message_type": "error", "message": "System Error"}, status=500
+        #     )
 
     return wrapper
 
@@ -66,6 +75,12 @@ def case_decorator(func):
         case_id = kwargs.get("case_id", None)
         if message is None:
             message, context = __setup_case_form(request, context, form_code, case_id)
+            if message is None:
+                case_instance = context.get("case_instance", None)
+                mini_app = context.get("mini_app", None)
+                if mini_app is not None and case_instance is not None:
+                    if not __verify_case_permission(request, mini_app, case_instance):
+                        message = "Permission Denied"
             home_page = True
         else:
             home_page = False
@@ -208,9 +223,85 @@ def __setup_case_form(request, context, form_code, case_id):
             )
             case_instance = get_object_or_redirect(model_class, pk=case_id)
             context["case_instance"] = case_instance
-            # if case_instance is None:
-            #     message = f"Case ({case_id}) is not found"
     return message, context
+
+
+def __verify_case_permission(request, mini_app, case_instance):
+    user_info = (
+        request.session["user_info"]
+        if "user_info" in request.session
+        else request.user.get_user_info()
+    )
+    if user_info.get("is_superuser", False):
+        return True
+    if case_instance.status == constants.CASE_CANCELLED:
+        return False
+    if case_instance.created_by == request.user:
+        return True
+
+    role_unit = request.current_page_menu.get("role_unit", [])
+    role_unit_ids = [r.get("permission_role__id") for r in role_unit]
+
+    if (
+        case_instance.status != constants.CASE_COMPLETED
+        and case_instance.task_instance is not None
+        and len(role_unit_ids) > 0
+        and case_instance.task_instances.filter(
+            assign_to__id__in=role_unit_ids
+        ).exists()
+    ):
+        return True
+
+    role_company_ids = [r.get("permission_role__company__id") for r in role_unit]
+    role_department_ids = [r.get("permission_role__department__id") for r in role_unit]
+    role_team_ids = [r.get("permission_role__team__id") for r in role_unit]
+    if len(role_unit) == 0:
+        return False
+    elif (
+        mini_app.control_type == "company"
+        and case_instance.case_department.company.id in role_company_ids
+    ):
+        return True
+    elif mini_app.control_type == "department":
+        if case_instance.case_department.id in role_department_ids:
+            return True
+        else:
+            parent_id_list = [
+                r.get("permission_role__company__id")
+                for r in role_unit
+                if r.get("permission_role__department__id") is None
+                and r.get("permission_role__company__id") is not None
+            ]
+            if case_instance.department.company.id in parent_id_list:
+                return True
+            else:
+                return False
+    elif mini_app.control_type == "team":
+        if case_instance.case_team.id in role_team_ids:
+            return True
+        else:
+            parent_id_list = [
+                r.get("permission_role__department__id")
+                for r in role_unit
+                if r.get("permission_role__team__id") is None
+                and r.get("permission_role__department__id") is not None
+            ]
+            grandparent_id_list = [
+                r.get("permission_role__company__id")
+                for r in role_unit
+                if r.get("permission_role__team__id") is None
+                and r.get("permission_role__department__id") is None
+                and r.get("permission_role__company__id") is not None
+            ]
+            if case_instance.case_team.department.id in parent_id_list:
+                return True
+            elif case_instance.case_team.department.company.id in grandparent_id_list:
+                return True
+            else:
+                return False
+    elif mini_app.control_type == "app":  # app level permission
+        return True
+    return False
 
 
 # model pages must has model

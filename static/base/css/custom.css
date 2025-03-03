@@ -105,11 +105,11 @@
 } */
 
 body{
-    background-image: url("/static/image/home_background.png");
+    background-image: url("{% static 'image/home_background.ico' %}");
     background-size: 100%;
 }
 #main{
-    background-image: url("/static/image/background.png");
+    background-image: url("{% static 'image/background.ico' %}g");
     background-size: 60%;
     background-repeat: no-repeat;
     background-position: center bottom 0vw;

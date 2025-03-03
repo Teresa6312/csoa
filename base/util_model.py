@@ -5,6 +5,7 @@ from .cache import global_cache_decorator
 from django.db.models.fields.related import ForeignKey, ManyToManyField, OneToOneField
 from django.conf import settings
 from django.db.models import F, Q
+from .util import get_app_list, get_model_list
 
 
 @global_cache_decorator(
@@ -32,7 +33,12 @@ def get_select_choices(key):
             for i in data
         ]
     else:
-        result = [(i.get("value"), i.get("value")) for i in data]
+        result = []
+        for i in data:
+            if isinstance(i, dict) and i.get("value") is not None:
+                result.append((i.get("value"), i.get("value")))
+            else:
+                result.append((i, i))
     result.sort(key=lambda x: x[1])
     result.insert(0, ("", "---Select---"))
     return result
@@ -87,6 +93,10 @@ def get_dictionary(key):
         data = CustomUser.get_active_list()
     elif key == "user_list":
         data = CustomUser.get_list()
+    elif key == "app_list":
+        data = get_app_list()
+    elif key == "model_list":
+        data = get_model_list()
     elif key.startswith("dict_"):
         if key.endswith("_active"):
             data = DictionaryModel.get_dictionary_active_items_by_code(
@@ -97,7 +107,7 @@ def get_dictionary(key):
                 code=key.replace("dict_", "")
             )
     if data is not None:
-        data = list(data.values())
+        data = list(data.values()) if not isinstance(data, list) else data
     else:
         []
     return data

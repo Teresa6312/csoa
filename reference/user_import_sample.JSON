@@ -1,0 +1,27 @@
+{
+  "app": "userManagement",
+  "model": "CustomUser",
+  "data": [
+    {
+      "username": "cliu0002",
+      "email": "cliu0002@test.com",
+      "first_name": "Cuishan0001",
+      "last_name": "Liu",
+      "is_active": false,
+      "company": {
+        "-short_name": "ADC"
+      },
+      "department": {
+        "-short_name": "ADD"
+      },
+      "team": [
+        {
+          "-short_name": "DATA"
+        },
+        {
+          "-short_name": "CORE"
+        }
+      ]
+    }
+  ]
+}

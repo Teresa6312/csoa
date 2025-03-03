@@ -7,8 +7,12 @@ class LoginRequiredMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if not request.user.is_authenticated and not request.path.startswith(
-            settings.LOGIN_URL
+        user_info = request.session.get("user_info", {})
+        if (
+            user_info.get("is_authenticated", False) is False
+            and not request.path.startswith(settings.LOGIN_URL)
+            and not request.path.startswith("/static/")
+            and not request.path.startswith("/media/")
         ):
             return redirect(settings.LOGIN_URL)
         return self.get_response(request)

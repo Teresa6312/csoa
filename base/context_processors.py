@@ -24,6 +24,7 @@ def default_context(request):
         "permission_list": [],
         "request_path": request.path,
         "mini_app": None,
+        "user_info": request.session.get("user_info", None),
     }
     current_page_menu = None
     if not (
@@ -41,34 +42,33 @@ def default_context(request):
             request.level_1_menu if hasattr(request, "level_1_menu") else None
         )
         context["permission_list"] = permission_list
-        permission_context = get_user_current_page_menu_permission_context(
-            request, current_page_menu, permission_list
-        )
-        context.update(permission_context)
+        if permission_list is not None:
+            for k in permission_list:
+                context["permission__%s" % k] = True
     return context
 
 
-def get_user_current_page_menu_permission_context(
-    request, current_page_menu, permission_list
-):
-    if current_page_menu is not None:
-        cache_key = f"user_current_page_menu_permission_context[:{request.user.id}:{current_page_menu.get('id', '')}]"
-        context = cache.get(cache_key)
-        if context is not None:
-            return context
-        context = {}
-        original_menu = AppMenu.get_menu_tree_by_id_key(
-            current_page_menu.get("id"), current_page_menu.get("key")
-        )
-        if original_menu is not None:
-            if len(original_menu.get("sub_menu", [])) > 0:
-                keys = get_menu_key_in_list(original_menu.get("sub_menu"), None)
-                for k in keys:
-                    context["permission__%s" % k] = False
-                for k in request.permission_list:
-                    context["permission__%s" % k] = True
-        # logger.debug(f'context: {json.dumps(context)}')
-        cache.set(cache_key, context, settings.CACHE_TIMEOUT_L3)
-        return context
-    else:
-        return {}
+# def get_user_current_page_menu_permission_context(
+#     request, current_page_menu, permission_list
+# ):
+#     if current_page_menu is not None:
+#         cache_key = f"user_current_page_menu_permission_context[:{request.user.id}:{current_page_menu.get('id', '')}]"
+#         context = cache.get(cache_key)
+#         if context is not None:
+#             return context
+#         context = {}
+#         original_menu = AppMenu.get_menu_tree_by_id_key(
+#             current_page_menu.get("id"), current_page_menu.get("key")
+#         )
+#         if original_menu is not None:
+#             if len(original_menu.get("sub_menu", [])) > 0:
+#                 keys = get_menu_key_in_list(original_menu.get("sub_menu"), None)
+#                 for k in keys:
+#                     context["permission__%s" % k] = False
+#                 for k in request.permission_list:
+#                     context["permission__%s" % k] = True
+#         # logger.debug(f'context: {json.dumps(context)}')
+#         cache.set(cache_key, context, settings.CACHE_TIMEOUT_L3)
+#         return context
+#     else:
+#         return {}

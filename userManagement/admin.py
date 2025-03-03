@@ -310,6 +310,7 @@ class ExistedMenuInline(admin.TabularInline):
 class AppMenuAdmin(BaseAuditAdmin):
     list_display = [
         "application_menu_display",
+        "id",
         "key",
         "label",
         "control_type",

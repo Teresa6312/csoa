@@ -1,8 +1,11 @@
+from pathlib import Path
 import os
-from .settings_base import *
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-lk+ed7e!ek)7b(-d69*)b4%=!rl3ka5nkk1y#jz&gr37am*qr4"
+SECRET_KEY = ""
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -20,50 +23,38 @@ DATABASES = {
 }
 
 # email
-SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
+SENDGRID_API_KEY = ""
 
-EMAIL_HOST = os.environ.get("SENDGRID_SMTP_HOST", "")
-EMAIL_PORT = 587
-EMAIL_HOST_USER = os.environ.get("SENDGRID_USERNAME", "")
-EMAIL_HOST_PASSWORD = os.environ.get("SENDGRID_PASSWORD", "")
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_PORT = 587  # 25,587 for unencrypted/TSL; 465 FOR ssl
+EMAIL_HOST_USER = "apikey"
+EMAIL_HOST_PASSWORD = ""
 EMAIL_USE_TLS = True
 # Email address that error messages come from.
-SERVER_EMAIL = os.environ.get("SERVER_EMAIL", "")
-ADMINS = [("Your Name", "your_email@example.com")]
+SERVER_EMAIL = "csoa_test@csoa.com"
+ADMINS = [("Cuishan", "cuishan1122@gmail.com")]
 # Default email address to use for various automated correspondence from
 # the site managers.
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "")
+DEFAULT_FROM_EMAIL = "csoa_test@csoa.com"
 
 REDIS_HOST = "127.0.0.1"
 REDIS_PORT = 6379
-REDIS_DB = 2
+REDIS_DB = 1  # 0-15 for default redis server, 0 is used for sessions
 REDIS_PASSWORD = ""
-
-# myproject/settings.py
-CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
-CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
 CACHE_TIMEOUT_DEFAULT = 60 * 5  # 5 minutes
 CACHE_TIMEOUT_L1 = 60 * 15  # 15 minutes
 CACHE_TIMEOUT_L2 = 60 * 30  # 30 minutes
 CACHE_TIMEOUT_L3 = 60 * 60  # 60 minutes
 
-#
-# Redis Key format "%s:%s:%s" % (key_prefix, version, key)
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",  # Redis 服务器地址
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "DECODE_RESPONSES": True,  # Important for correct data handling
-        },
-        "TIMEOUT": CACHE_TIMEOUT_DEFAULT,
-        # 'KEY_PREFIX': 'global'  # Optional prefix to avoid namespacing issues
-    }
-}
+STATIC_URL = "/static/"
 
-if DEBUG == False:
-    MIDDLEWARE.append(
-        "base.middleware.CustomErrorHandlingMiddleware"
-    )  # middleware to handle error pages
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, "staticProd")
+
+MEDIA_URL = "/files/"  # URL prefix for media files
+# File system path to the directory for storing media files
+MEDIA_ROOT = os.path.join(BASE_DIR, "files")

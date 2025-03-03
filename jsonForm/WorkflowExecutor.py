@@ -83,8 +83,9 @@ class WorkflowExecutor:
         elif task.assign_to is not None:
             pers = task.assign_to.all()  # Get Permissions directly
         if len(pers) == 0:
+            assign_to = task.assign_to_role or task.assign_to  # Get assign_to value
             raise ValueError(
-                f"No user group was found to assign the task ({task.assign_to_role} or {task.assign_to}). If the task is assign to the case/request owner, it may has lost the access"
+                f"No user group was found to assign the task ({task.name} - {assign_to}). If the task is assign to the case/request owner, it may has lost the access"
             )  # Handle no assignees
 
         logger.debug(pers)  # Log the assigned Permissions

@@ -1,0 +1,34 @@
+{
+  "app": "userManagement",
+  "model": "AppMenu",
+  "data": [
+    {
+      "key": "view11",
+      "label": "View11",
+      "link": "/forms/view",
+      "menu_level": 1,
+      "is_active": false,
+      "parent_app_menu": {
+        "-key": "test",
+        "-menu_level": 0,
+        "-parent_app_menu": null
+      },
+      "sub_menus": [
+        {
+          "key": "sub_view11",
+          "label": "SubView11",
+          "link": "/test/forms/view",
+          "menu_level": 2,
+          "is_active": true
+        },
+        {
+          "key": "sub_view11",
+          "label": "SubView11",
+          "link": "/test/forms/view/s",
+          "menu_level": 2,
+          "is_active": true
+        }
+      ]
+    }
+  ]
+}

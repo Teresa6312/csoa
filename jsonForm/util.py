@@ -12,6 +12,7 @@ from userManagement.models import Team
 from django.contrib import messages
 import logging
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+from django.http import HttpResponseRedirect
 
 logger = logging.getLogger("django")
 
@@ -144,6 +145,7 @@ def create_case_view(request, form: FormTemplate, app_id=None):
 
 
 def edit_case_data_view(request, case, form: FormTemplate, app_id=None):
+    case_lock = case.get_lock()
     section_datas = case.case_data_case.all()
     section_forms = []
     section_forms_data = {}
@@ -155,12 +157,22 @@ def edit_case_data_view(request, case, form: FormTemplate, app_id=None):
     message = ""
 
     if request.method == "POST":
+        if case_lock is not None:
+            messages.warning(
+                request,
+                f"Case #{case.id} is locked by user {case_lock}, please try again after one minute.",
+            )
+            return {}
+        else:
+            case.set_lock(request)
+
         if request.POST.get("action") == "submit":
             case.is_submited = True
         elif request.POST.get("action") == "cancel":
             case.status = "Cancelled"
             case.save()
             messages.info(request, f"Case [{case.id}] {case.status}")
+            case.remove_lock()
             return {}
 
     case_form = CaseForm.create_case_form(app_id, request.user, prefix="case_form")
@@ -256,6 +268,7 @@ def edit_case_data_view(request, case, form: FormTemplate, app_id=None):
             messages.warning(
                 request, f"Please re-upload the files and resubmit the form."
             )
+            case.remove_lock()
             return {
                 "form": form,
                 "section_forms": section_forms,
@@ -263,12 +276,14 @@ def edit_case_data_view(request, case, form: FormTemplate, app_id=None):
                 "error": e,
             }
         messages.info(request, f"Case [{case.id}] {case.status}")
+        case.remove_lock()
         return {}
     elif request.method == "POST":
         messages.warning(request, f"Please re-upload the files and resubmit the form.")
         logger.debug(
             f"Initial data valid {case_form_is_valid}; Main form valid {section_forms_is_valid}; sub form valid: {section_formsets_valid} {messages.get_messages(request)}"
         )
+    case.remove_lock()
     return {"form": form, "section_forms": section_forms, "case_form": case_form}
 
 

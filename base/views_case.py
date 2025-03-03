@@ -139,6 +139,15 @@ def get_case_details(request, context, app_name, form_code, case_id):
     TaskInstanceForm = create_dynamic_task_instance_form(TaskInstance)
 
     if case_instance.workflow_instance is not None and request.method == "POST":
+        case_lock = case_instance.get_lock()
+        if case_lock is not None:
+            messages.warning(
+                request,
+                f"Case #{case_instance.id} is locked by user {case_lock}, please try again after one minute.",
+            )
+            return redirect("app:app_case_details", app_name, form_code, case_id)
+        else:
+            case_instance.set_lock(request)
         pending_task_forms = [
             TaskInstanceForm(
                 request.POST,
@@ -174,6 +183,7 @@ def get_case_details(request, context, app_name, form_code, case_id):
                         logger.debug(e)
                         messages.error(request, e)
                     raise Exception(e)
+            case_instance.remove_lock()
             return redirect("app:app_case_details", app_name, form_code, case_id)
         else:
             context["pending_task_forms"] = pending_task_forms

@@ -1,5 +1,6 @@
 from django.db import models
 from base.models import BaseAuditModel, FileModel
+from django.core.cache import cache
 from userManagement.models import (
     Company,
     Department,
@@ -941,6 +942,32 @@ class CaseBaseModel(BaseAuditModel):
                 self.updated_by.last_name,
             )
         super().save(*args, **kwargs)
+
+    def get_lock(self):
+        key = "case_lock[%s:%s:%s]" % (
+            self._meta.app_label,
+            self._meta.model_name,
+            self.id,
+        )
+        return cache.get(key)
+
+    def set_lock(self, request):
+        key = "case_lock[%s:%s:%s]" % (
+            self._meta.app_label,
+            self._meta.model_name,
+            self.id,
+        )
+        user_info = request.session.get("user_info")
+        user_name = "%s %s" % (user_info["first_name"], user_info["last_name"])
+        cache.set(key, user_name, timeout=60)
+
+    def remove_lock(self):
+        key = "case_lock[%s:%s:%s]" % (
+            self._meta.app_label,
+            self._meta.model_name,
+            self.id,
+        )
+        cache.delete(key)
 
 
 class CaseDataBaseModel(BaseAuditModel):

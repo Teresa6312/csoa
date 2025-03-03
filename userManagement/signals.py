@@ -21,6 +21,7 @@ def log_user_login(sender, request, user, **kwargs):
 @receiver(user_logged_out)
 def log_user_logout(sender, request, user, **kwargs):
     if user:
+        request.session["user_info"] = None
         logger.info(f"User logged out", extra={"user_id": user.id})
     else:
         logger.info("Anonymous user logged out")

@@ -3,8 +3,9 @@
 <h3>{{form.description}}</h3>
 <form method="post" enctype="multipart/form-data" id="main-form">
 {% csrf_token %}
+<div class="w3-row">
 {% for field in case_form %}
-    <div class="w3-padding">
+    <div {% if not field.is_hidden %} class="w3-padding w3-half" {% endif %}>
     {% if not field.is_hidden %}
         {{ field.label_tag }}
     {% endif %}
@@ -21,6 +22,7 @@
     {% endif %}
     </div>
 {% endfor %}
+</div>
 {% for section in section_forms %}
     <div id="form_section_id_{{section.form_section_id.value}}" class="module w3-container ">
         {% for field in section %}
@@ -107,6 +109,21 @@
             if (label) {
                 label.remove();
             }
+        });
+
+        let selectInputs = document.querySelectorAll('select');
+        selectInputs.forEach(function(select) {
+            // Add class without overwriting existing classes
+            select.classList.add("selectpicker");
+            
+            // Set data attribute properly
+            select.setAttribute("data-width", "100%");
+            select.setAttribute("data-live-search", "true");
+            if (select.required) {
+                select.setAttribute('data-style', 'input-border')
+            }
+            // Initialize the bootstrap-select plugin
+            $(select).selectpicker();
         });
     });
 </script>

@@ -226,6 +226,9 @@ table td {
 .form-input-container input[required], .form-input-container select[required], .formset-form input[required], .formset-form select[required], .form-input-container textarea[required] , .formset-form textarea [required]{ /* Attribute selector (alternative) */
     border: 2px solid black;
 }
+.input-border {
+    border: 2px solid black !important;
+}
 .form-input-container textarea , .formset-form textarea{
     height: 6cap;
     width: 100%;

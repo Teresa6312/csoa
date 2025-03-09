@@ -45,6 +45,11 @@ urlpatterns = [
         name="app_case_details",
     ),
     path(
+        "app/<str:app_name>/cases/<str:form_code>/details/<str:display_type>/<int:case_id>-filter",
+        case_decorator(views_case.get_case_details),
+        name="app_case_details_in_list",
+    ),
+    path(
         "app/<str:app_name>/model/<str:model>",
         model_decorator(views_model.get_model_view),
         name="app_model_view",

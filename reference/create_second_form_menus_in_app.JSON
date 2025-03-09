@@ -1,0 +1,119 @@
+{
+  "app": "userManagement",
+  "model": "AppMenu",
+  "data": [
+    {
+      "-key": "my_cases",
+      "-label": "My Requests",
+      "-link": "/app/lgooasystem/my-cases",
+      "-menu_level": 1,
+      "sub_menus": [
+        {
+          "key": "createCaseADC_TEST0",
+          "label": "Create Document Review Request Form",
+          "link": "/app/lgooasystem/forms/add/ADC_TEST0",
+          "icon": "fa fa-plus",
+          "sub_menus": [],
+          "menu_level": 2,
+          "unit_control": false
+        },
+        {
+          "key": "detailsADC_TEST0",
+          "label": "Details",
+          "link": null,
+          "icon": null,
+          "sub_menus": [],
+          "menu_level": 2,
+          "unit_control": false
+        },
+        {
+          "key": "editADC_TEST0",
+          "label": "Edit",
+          "link": "/app/lgooasystem/my-cases/ADC_TEST0/edit",
+          "icon": null,
+          "sub_menus": [],
+          "menu_level": 2,
+          "unit_control": false
+        }
+      ]
+    },
+    {
+      "key": "searchADC_TEST0",
+      "label": "Search ADC_TEST0",
+      "link": "/app/lgooasystem/cases/search/ADC_TEST0",
+      "icon": null,
+      "parent_app_menu": {
+        "-key": "lgooasystem",
+        "-menu_level": 0
+      },
+      "menu_level": 1,
+      "unit_control": false,
+      "sub_menus": [
+        {
+          "key": "details",
+          "label": "Details",
+          "link": "/app/lgooasystem/cases/ADC_TEST0/details",
+          "icon": null,
+          "sub_menus": [
+            {
+              "key": "documentsTab",
+              "label": "Documents",
+              "link": "/app/lgooasystem/cases/ADC_TEST0/details/documents",
+              "icon": null,
+              "sub_menus": [],
+              "menu_level": 3,
+              "unit_control": false
+            },
+            {
+              "key": "historyTab",
+              "label": "History",
+              "link": "/app/lgooasystem/cases/ADC_TEST0/details/history",
+              "icon": null,
+              "sub_menus": [],
+              "menu_level": 3,
+              "unit_control": false
+            },
+            {
+              "key": "dataFileDownload",
+              "label": "Data File Download",
+              "link": "/app/lgooasystem/cases/ADC_TEST0/file-download",
+              "icon": null,
+              "sub_menus": [],
+              "menu_level": 3,
+              "unit_control": false
+            },
+            {
+              "key": "fileDownload",
+              "label": "Download",
+              "link": "/app/lgooasystem/cases/ADC_TEST0/file-download",
+              "icon": null,
+              "sub_menus": [],
+              "menu_level": 3,
+              "unit_control": false
+            },
+            {
+              "key": "tasksTab",
+              "label": "Tasks",
+              "link": null,
+              "icon": null,
+              "sub_menus": [],
+              "menu_level": 3,
+              "unit_control": false
+            },
+            {
+              "key": "workflow",
+              "label": "Workflow",
+              "link": "/app/lgooasystem/cases/workflow/ADC_TEST0",
+              "icon": null,
+              "sub_menus": [],
+              "menu_level": 3,
+              "unit_control": false
+            }
+          ],
+          "menu_level": 2,
+          "unit_control": false
+        }
+      ]
+    }
+  ]
+}

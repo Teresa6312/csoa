@@ -4,7 +4,7 @@ from .util import CustomJSONEncoder
 from django.contrib import messages
 from django.http import JsonResponse
 import json
-from modelBase.models import ModelDictionaryConfigModel
+from base.models import ModelDictionaryConfigModel
 from functools import reduce
 from django.db.models import Q
 from .util import CustomJSONEncoder, extract_datatables_search_builder_parameters
@@ -19,8 +19,30 @@ import logging
 
 logger = logging.getLogger("django")
 
-
 def get_model_view(request, context, app_name, model, department=None, team=None):
+    """
+        View to render the model list page.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+            context (dict): Context data for the view.
+            app_name (str): The name of the application.
+            model (str): The name of the model.
+            department (str, optional): The department name. Defaults to None.
+            team (str, optional): The team name. Defaults to None.
+
+        Returns:
+            HttpResponse: Renders the model list page.
+
+        Database Operations:
+            - Read: model_class
+
+        Tables Used:
+            - model_class (Read)
+
+        Addtional Information:
+            None
+    """
     template_name = "base/app_model_list.html"
     model_details = context["model_details"]
 
@@ -35,9 +57,29 @@ def get_model_view(request, context, app_name, model, department=None, team=None
     )
     return render(request, template_name, context)
 
-
 @model_decorator
 def get_model_view_data(request, context, app_name, model):
+    """
+        View to get the model data for DataTables.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+            context (dict): Context data for the view.
+            app_name (str): The name of the application.
+            model (str): The name of the model.
+
+        Returns:
+            JsonResponse: Returns the model data in JSON format.
+
+        Database Operations:
+            - Read: model_class
+
+        Tables Used:
+            - model_class (Read)
+
+        Addtional Information:
+            None
+    """
     model_details = context["model_details"]
     model_class = context["model_class"]
 
@@ -55,7 +97,7 @@ def get_model_view_data(request, context, app_name, model):
     search_builder_logic = request.POST.get("searchBuilder[logic]", None)
     logger.debug(search_builder_logic)
 
-    # 处理过滤
+    # Handle filtering
     if search_value:
         conditions = reduce(
             lambda x, y: x | Q(**{f"{y}__icontains": search_value}), search_keys, Q()
@@ -67,7 +109,7 @@ def get_model_view_data(request, context, app_name, model):
         )
         queryset = queryset.filter(q_objects)
 
-    # 处理排序
+    # Handle sorting
     order_column = request.POST.get("order[0][column]", None)
     order_by = None
     if order_column is not None:
@@ -80,7 +122,7 @@ def get_model_view_data(request, context, app_name, model):
 
     logger.debug(queryset.query)
 
-    # 处理分页
+    # Handle pagination
     paginator = Paginator(queryset.values(*field_names), request.POST.get("length", 10))
     page_number = start // length + 1
     page = paginator.get_page(page_number)
@@ -90,14 +132,36 @@ def get_model_view_data(request, context, app_name, model):
         "recordsTotal": queryset.count(),
         "recordsFiltered": paginator.count,
         "data": json.loads(data),
-        # 'options': filter_kwargs
     }
     return JsonResponse(response_data, safe=True)
-
 
 def get_model_details_view(
     request, context, app_name, model, id, department=None, team=None
 ):
+    """
+        View to render the model details page.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+            context (dict): Context data for the view.
+            app_name (str): The name of the application.
+            model (str): The name of the model.
+            id (int): The ID of the model instance.
+            department (str, optional): The department name. Defaults to None.
+            team (str, optional): The team name. Defaults to None.
+
+        Returns:
+            HttpResponse: Renders the model details page.
+
+        Database Operations:
+            - Read: model_class
+
+        Tables Used:
+            - model_class (Read)
+
+        Addtional Information:
+            None
+    """
     template_name = "base/app_model_details.html"
     model_details = context["model_details"]
     model_class = context["model_class"]
@@ -120,11 +184,34 @@ def get_model_details_view(
     context["sub_tables"] = temp
     return render(request, template_name, context)
 
-
 @model_decorator
 def get_model_details_view_sub_table_json(
     request, context, app_name, model, id, sub_table_model, sub_table_field
 ):
+    """
+        View to get the sub-table data for a model in JSON format.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+            context (dict): Context data for the view.
+            app_name (str): The name of the application.
+            model (str): The name of the model.
+            id (int): The ID of the model instance.
+            sub_table_model (str): The name of the sub-table model.
+            sub_table_field (str): The field name in the sub-table model.
+
+        Returns:
+            JsonResponse: Returns the sub-table data in JSON format.
+
+        Database Operations:
+            - Read: model_class
+
+        Tables Used:
+            - model_class (Read)
+
+        Addtional Information:
+            None
+    """
     model_details = ModelDictionaryConfigModel.get_details(sub_table_model)
     model_class = None
     try:
@@ -155,11 +242,34 @@ def get_model_details_view_sub_table_json(
         }
     return JsonResponse(response_data, safe=True)
 
-
 @model_decorator
 def get_model_details_file_download_view(
     request, context, app_name, model, id, sub_table_field, file_id
 ):
+    """
+        View to handle file download for a model's sub-table.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+            context (dict): Context data for the view.
+            app_name (str): The name of the application.
+            model (str): The name of the model.
+            id (int): The ID of the model instance.
+            sub_table_field (str): The field name in the sub-table model.
+            file_id (int): The ID of the file to be downloaded.
+
+        Returns:
+            HttpResponse: Serves the file as an HTTP response.
+
+        Database Operations:
+            - Read: FileModel
+
+        Tables Used:
+            - FileModel (Read)
+
+        Addtional Information:
+            None
+    """
     model_details = context["model_details"]
     sub_tables = model_details.get("sub_tables", [])
     id_filter_name = None

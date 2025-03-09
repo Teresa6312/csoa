@@ -205,7 +205,7 @@ class AppMenu(BaseAuditModel):
         max_length=127,
         blank=True,
         null=True,
-        help_text="Name of the Django view to call (if applicable).",
+        help_text="Name of the Django view (map with url name & namespaces) to call (if applicable).",
     )  # this field is not used for now, but will be used to store the django view name better debug and maintenance
     unit_control = models.BooleanField(
         default=False,
@@ -345,6 +345,7 @@ class AppMenu(BaseAuditModel):
                     ),  # Accessing id directly.
                     "unit_control": item.unit_control,
                     "role_unit": new_role,
+                    "diango_view": item.diango_view,
                 }
 
         for item in menu_items:

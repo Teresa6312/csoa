@@ -18,7 +18,6 @@ from django.urls import reverse
 from django.apps import apps
 import uuid
 from base.validators import get_validator
-from django_jsonform.models.fields import JSONField
 from base.cache import global_class_cache_decorator, global_instance_cache_decorator
 from django.conf import settings
 from base.util import (
@@ -361,7 +360,10 @@ class FormSection(BaseAuditModel):
                 }
             )
         return fields
-
+    
+    @property
+    def get_fields(self):
+        return {key: value.get("label", key) for key, value in self.json_template.items()}
 
 def validate_form_section_json_message(json_value):
     """

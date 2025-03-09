@@ -16,26 +16,17 @@ from .settings_local import *
 # from .settings_production import *
 
 from pathlib import Path
-from celery.schedules import crontab
 import os
-import logging
-from logging.handlers import TimedRotatingFileHandler
 
 SITE_NAME = "OA System"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# settings_path = os.path.join(BASE_DIR, 'settings_file.py')
-# if os.path.exists(settings_path):
-#     from settings_file import *
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-
 # Application definition
-
 INSTALLED_APPS = [
     "base.apps.BaseConfig",
     "userManagement.apps.UsermanagementConfig",
@@ -50,26 +41,17 @@ INSTALLED_APPS = [
     "django.contrib.admindocs",  # Enable admindocs
     "simple_history",
     "rest_framework",  # Enable Django REST framework
-    "django_jsonform",
-    # 'django_tables2',
-    # 'explorer',
 ]
 
 MIDDLEWARE = [
-    "django.contrib.sessions.middleware.SessionMiddleware",  # Must come first
-    "django.middleware.common.CommonMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",  # Required for user auth
     "django.middleware.security.SecurityMiddleware",  # 放在最前面是最佳实践。它处理一些安全相关的设置，尽早应用可以提高安全性。
     "django.contrib.sessions.middleware.SessionMiddleware",  # 通常放在 CommonMiddleware 之前，因为它依赖于会话。
-    # "django.middleware.common.CommonMiddleware",  # 处理一些通用的任务，比如 URL 重写、gzip 压缩等。
+    "django.middleware.common.CommonMiddleware",  # 处理一些通用的任务，比如 URL 重写、gzip 压缩等。
     "django.middleware.csrf.CsrfViewMiddleware",  # 必须在 SessionMiddleware 之后，因为它使用会话来存储 CSRF token。
-    # "django.contrib.auth.middleware.AuthenticationMiddleware",  # 在 SessionMiddleware 之后，它使用会话来验证用户身份。
+    "django.contrib.auth.middleware.AuthenticationMiddleware",  # 在 SessionMiddleware 之后，它使用会话来验证用户身份。
     "django.contrib.messages.middleware.MessageMiddleware",  # 通常放在 AuthenticationMiddleware 之后，因为它可能需要访问用户信息。
     "django.middleware.clickjacking.XFrameOptionsMiddleware",  # 处理 clickjacking 攻击，位置一般放在安全相关的中间件之后。
     "simple_history.middleware.HistoryRequestMiddleware",  # 用于 simple_history 记录历史变更，位置通常放在与数据库操作相关的中间件之前。
-    # "django.middleware.timezone.TimezoneMiddleware", ????
-    # 'django.contrib.admindocs.middleware.XViewMiddleware', # Enable admindocs ??
-    # 'django.middleware.locale.LocaleMiddleware', # Enable localization ??
     # middleware to required user login
     "csoa.middleware.LoginRequiredMiddleware",
     # middleware to print user login/logout log
@@ -162,31 +144,7 @@ AUTH_USER_MODEL = "userManagement.CustomUser"
 # Email backend configuration
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-# Use broker_connection_retry_on_startup to retain existing behavior
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-
-# 其他可选的配置项
-# CELERY_ACKS_LATE = True # may only use for testing
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = "UTC"
-# CELERY_TIMEZONE = 'America/New_York'
-
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_BEAT_SCHEDULE = {
-    "set_key-every-30-seconds": {
-        "task": "base.tasks.set_key",
-        "schedule": 3000.0,
-    },
-    "get_redis_data-every-30-seconds": {
-        "task": "base.tasks.get_redis_data_test",
-        "schedule": 3600.0,
-    },
-}
-
-# LOGIN_REDIRECT_URL = "/"  # Redirect to the home page after login
+LOGIN_REDIRECT_URL = "/"  # Redirect to the home page after login
 
 # Session configuration
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
@@ -203,17 +161,6 @@ CONN_HEALTH_CHECKS = True  # Enable health checks for database connections
 CONN_HEALTH_CHECK_PERIOD = (
     30  # The number of seconds between database connection health checks
 )
-
-
-# # myproject/settings.py
-# CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
-# CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
-
-
-# Define the base directory for log files
-LOG_DIR = os.path.join(BASE_DIR, "logs")
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
 
 LOGGING = {
     "version": 1,
@@ -305,7 +252,7 @@ LOGGING = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",  # Redis 服务器地址
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_CACHE}",  # Redis 服务器地址
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "DECODE_RESPONSES": True,  # Important for correct data handling
@@ -316,7 +263,7 @@ CACHES = {
     },
     "sessions": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/0",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_SESSIONS}",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             # "PASSWORD": "your_redis_password",  # 如果有密码

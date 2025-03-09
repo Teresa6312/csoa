@@ -1,6 +1,5 @@
 from django.http import JsonResponse
-from django.core.exceptions import ValidationError
-from modelBase.models import ModelDictionaryConfigModel
+from base.models import ModelDictionaryConfigModel
 from userManagement.models import AppMenu
 from .util_model import get_dictionary
 from .util import get_model_class, get_object_or_redirect
@@ -18,6 +17,18 @@ logger = logging.getLogger("django")
 
 
 def request_decorator(func):
+    """
+    Decorator to handle POST requests and log function calls.
+
+    Args:
+        func (function): The function to be decorated.
+
+    Returns:
+        function: The wrapped function.
+
+    Database Operations:
+        None
+    """
     @wraps(func)
     def wrapper(request, *args, **kwargs):
         func_name = func.__name__
@@ -31,33 +42,27 @@ def request_decorator(func):
                 {"message_type": "error", "message": "Invalid request method"},
                 status=400,
             )
-        # try:
-        #     if request.method == "POST":
-        #         result = func(request, *args, **kwargs)
-        #         return result
-        #     else:
-        #         return JsonResponse(
-        #             {"message_type": "error", "message": "Invalid request method"},
-        #             status=400,
-        #         )
-        # except ValidationError as e:
-        #     field_errors = [
-        #         {"name": field, "status": ", ".join(errors)}
-        #         for field, errors in e.message_dict.items()
-        #     ]
-        #     return JsonResponse(
-        #         {"message_type": "error", "message": field_errors}, status=400
-        #     )
-        # except Exception as e:
-        #     logger.error(str(e))
-        #     return JsonResponse(
-        #         {"message_type": "error", "message": "System Error"}, status=500
-        #     )
-
     return wrapper
 
 
 def case_decorator(func):
+    """
+    Decorator to set up context for case-related views and handle permissions.
+
+    Args:
+        func (function): The function to be decorated.
+
+    Returns:
+        function: The wrapped function.
+
+    Database Operations:
+        - Read: AppMenu, FormTemplate, case_instance (various models)
+        - Conditional: Redirect based on permissions and context setup
+
+    Tables Used:
+        - AppMenu
+        - FormTemplate
+    """
     @wraps(func)
     def wrapper(request, *args, **kwargs):
         func_name = func.__name__
@@ -100,7 +105,6 @@ def case_decorator(func):
                         redirect("app:home")
                     else:
                         return redirect("app:app_home", app_name)
-        # Call the original function with modified arguments
         result = func(request, context, *args, **kwargs)
         return result
 
@@ -108,6 +112,23 @@ def case_decorator(func):
 
 
 def model_decorator(func):
+    """
+    Decorator to set up context for model-related views.
+
+    Args:
+        func (function): The function to be decorated.
+
+    Returns:
+        function: The wrapped function.
+
+    Database Operations:
+        - Read: AppMenu, ModelDictionaryConfigModel, model_instance (various models)
+        - Conditional: Redirect based on context setup
+
+    Tables Used:
+        - AppMenu
+        - ModelDictionaryConfigModel
+    """
     @wraps(func)
     def wrapper(request, *args, **kwargs):
         func_name = func.__name__
@@ -151,6 +172,23 @@ def model_decorator(func):
 
 
 def model_unit_decorator(func):
+    """
+    Decorator to set up context for unit-related views.
+
+    Args:
+        func (function): The function to be decorated.
+
+    Returns:
+        function: The wrapped function.
+
+    Database Operations:
+        - Read: AppMenu, ModelDictionaryConfigModel, department, team
+        - Conditional: Redirect based on context setup
+
+    Tables Used:
+        - AppMenu
+        - ModelDictionaryConfigModel
+    """
     @wraps(func)
     def wrapper(request, *args, **kwargs):
         func_name = func.__name__
@@ -198,6 +236,23 @@ def model_unit_decorator(func):
 
 
 def __setup_app(request, context, app_name):
+    """
+    Set up the application context.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        context (dict): The context dictionary to be modified.
+        app_name (str): The application name.
+
+    Returns:
+        tuple: A tuple containing a message (str) and the modified context (dict).
+
+    Database Operations:
+        - Read: AppMenu
+
+    Tables Used:
+        - AppMenu
+    """
     message = None
     mini_app = AppMenu.get_app_instance_by_key(app_name)
     if mini_app is None:
@@ -209,6 +264,24 @@ def __setup_app(request, context, app_name):
 
 # cases pages may not have form
 def __setup_case_form(request, context, form_code, case_id):
+    """
+    Set up the case form context.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        context (dict): The context dictionary to be modified.
+        form_code (str): The form code.
+        case_id (int): The case ID.
+
+    Returns:
+        tuple: A tuple containing a message (str) and the modified context (dict).
+
+    Database Operations:
+        - Read: FormTemplate, case_instance (various models)
+
+    Tables Used:
+        - FormTemplate
+    """
     message = None
     if form_code is not None:
         form = FormTemplate.get_instance_by_code(form_code)
@@ -227,6 +300,23 @@ def __setup_case_form(request, context, form_code, case_id):
 
 
 def __verify_case_permission(request, mini_app, case_instance):
+    """
+    Verify case permissions for the user.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        mini_app (AppMenu): The mini application instance.
+        case_instance (Model): The case instance.
+
+    Returns:
+        bool: True if the user has permission, False otherwise.
+
+    Database Operations:
+        - Read: case_instance (various models)
+
+    Tables Used:
+        - Various models depending on the case instance
+    """
     user_info = (
         request.session["user_info"]
         if "user_info" in request.session
@@ -306,6 +396,24 @@ def __verify_case_permission(request, mini_app, case_instance):
 
 # model pages must has model
 def __setup_model(request, context, model, id):
+    """
+    Set up the model context.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        context (dict): The context dictionary to be modified.
+        model (str): The model name.
+        id (int): The model instance ID.
+
+    Returns:
+        tuple: A tuple containing a message (str) and the modified context (dict).
+
+    Database Operations:
+        - Read: ModelDictionaryConfigModel, model_instance (various models)
+
+    Tables Used:
+        - ModelDictionaryConfigModel
+    """
     model_class = None
     model_details = None
     message = None
@@ -332,6 +440,24 @@ def __setup_model(request, context, model, id):
 
 # Unit Control pages must have department
 def __setup_unit(request, context, department, team):
+    """
+    Set up the unit context.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        context (dict): The context dictionary to be modified.
+        department (str): The department name.
+        team (str): The team name.
+
+    Returns:
+        tuple: A tuple containing a message (str) and the modified context (dict).
+
+    Database Operations:
+        - Read: department, team (from dictionaries)
+
+    Tables Used:
+        - None (uses dictionaries)
+    """
     message = None
     dept_list = get_dictionary("department_list_active")
     dept = next((m for m in dept_list if m.get("short_name", None) == department), None)

@@ -32,6 +32,7 @@ urlpatterns = [
     path("api/", include("base.urls_api", namespace="api")),
     path("forms/", include("jsonForm.urls", namespace="jsonForm")),
     path("user/", include("userManagement.urls", namespace="userManagement")),
+    path("model-base/", include("modelBase.urls", namespace="modelBase")),
     path("accounts/profile/", user_views.get_user_profile_view, name="user_profile"),
     path(
         "accounts/login/",

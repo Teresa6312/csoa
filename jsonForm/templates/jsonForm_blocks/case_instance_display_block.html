@@ -1,0 +1,53 @@
+{% load tz %}
+{% block content %}
+<div class="w3-row">
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Initial By
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.created_by}}
+        </div>
+    </div>
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Initial By Team
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.case_team}}
+        </div>
+    </div>
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Created At
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.created_at|timezone:"America/New_York"|date:"m/d/Y H:i:s"}}
+        </div>
+    </div>
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Case Status
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.status}}
+        </div>
+    </div>
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Updated By
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.updated_by}}
+        </div>
+    </div>
+    <div class="w3-container w3-half w3-row">
+        <div class="w3-large w3-bold w3-padding-small w3-third">
+            Updated At
+        </div>
+        <div class="w3-rest w3-padding-small w3-border">
+            {{case_instance.updated_at|timezone:"America/New_York"|date:"m/d/Y H:i:s"}}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base/app_base.html" %}
+{% load i18n admin_urls static %}
+
+{% block content %}
+  {% include 'jsonForm_blocks/case_instance_display_block.html' %}
+  {% include 'jsonForm_blocks/form_case_data_list_block.html' %}
+{% endblock %}

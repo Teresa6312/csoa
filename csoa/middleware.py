@@ -14,5 +14,6 @@ class LoginRequiredMiddleware:
             and not request.path.startswith("/static/")
             and not request.path.startswith("/media/")
         ):
-            return redirect(settings.LOGIN_URL)
+            return redirect(settings.LOGIN_URL+"?next="+request.path if "logout" not in request.path else settings.LOGIN_URL)
+
         return self.get_response(request)

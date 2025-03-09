@@ -1,0 +1,118 @@
+{% block content %}
+{% if flag_form %}
+    <form method="post" enctype="multipart/form-data" id="main-form">
+        {% csrf_token %}
+        {% for field in flag_form%}
+        {{field}}
+        {% endfor%}
+        <button type="submit"  class="logo-navy-background w3-hover-light-grey w3-padding w3-red w3-border-0 w3-right w3-margin" id= "submitBtn" >Submit</button>
+    </form>
+{% endif %}
+<table id="listTable{{name}}" class="display">
+    <thead>
+        <tr>
+            {% for key, value  in fields.items %}
+                <th>{{value}}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<script>
+    (function () {
+        var created_at_index = -1;
+        var updated_at_index = -1;
+
+        // Function to create table header
+        function define_columns(fields) {
+            let columns = []
+            var index = 0
+            for (key in fields) {
+                columns.push({data:key})
+                if (key === 'created_at') {
+                    created_at_index = index; // Store the index of 'created_at' column
+                } else if (key === 'updated_at') {
+                    updated_at_index = index; // Store the index of 'updated_at' column
+                }
+                index++;
+            }
+            return columns
+        }
+
+        var order = [[0, 'desc']]; // Default order (ID column)
+        if (updated_at_index !== -1) {
+            order = [[updated_at_index, 'desc']]; // Order by 'create_at' if it exists
+        }
+        else if (created_at_index !== -1) {
+            order = [[created_at_index, 'desc']]; // Order by 'create_at' if it exists
+        }
+
+        var columnDefs = []  
+
+        if ($("#main-form").length > 0){
+            columnDefs.push(
+                {
+                    "targets": 0, 
+                    "data": null, 
+                    "render": function (data, type, row) {
+                        if (row['flag'] == true){
+                            content = '<input type="checkbox" class="flag_checkbox" value=' + row['id']+' checked />'
+                        }else{
+                            content = '<input type="checkbox" class="flag_checkbox" value=' + row['id']+' />'
+                        }
+                        return content;
+                    }
+                }
+            )
+        }
+
+        function get_checkbox_values() {
+            var checked = document.querySelectorAll('.flag_checkbox');
+            var values = [];
+
+            if(checked.length != 0){
+                for(let i=0; i<checked.length;i++){
+                    if(checked[i].checked) {
+                        values.push(checked[i].value)
+                    }
+                }
+            }
+            return values;
+        }
+
+        $(document).ready(function(){
+            var queryset = {{ queryset|safe }};
+            var fields = {{ fields|safe }};
+
+            var buttons = ['pageLength','colvis']
+            if({{ exportCsv|default:False|yesno:"true,false" }}) {
+                buttons.push('csv')
+            }
+
+            if(queryset.length !== undefined && queryset.length > 0) {
+                $('#listTable{{name}}').DataTable({
+                    dom: 'Bfrtip',
+                    columns: define_columns(fields),
+                    data: queryset,
+                    buttons: buttons,
+                    order: order,
+                    columnDefs: columnDefs
+                })
+            } else {
+                let tr = document.createElement('tr');
+                tr.innerText = "No data"
+                $('#listTable{{name}} tbody').append(tr)
+            }
+            if ($("#id_ids").length > 0 ) {
+                $("#id_ids").hide()
+                $("#id_ids").val(get_checkbox_values());
+                $('.flag_checkbox').click(function(){
+                    $("#id_ids").val(get_checkbox_values());
+                    console.log($("#id_ids").val());
+                })
+            }
+        })
+    })();
+</script>
+{% endblock %}

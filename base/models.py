@@ -8,6 +8,7 @@ from .validators import get_validator
 import uuid
 from django.db.models import F, Q
 from django.conf import settings
+import ast
 
 
 def validate_dictionary_code(value):
@@ -72,7 +73,7 @@ class BaseAuditModel(models.Model):
     @classmethod
     def get_unique_fields(cls):
         unique_fields = []
-        for field in model_cls._meta.fields:
+        for field in cls._meta.fields:
             if field.unique:
                 unique_fields.append(field.name)
         return unique_fields
@@ -80,7 +81,7 @@ class BaseAuditModel(models.Model):
     @classmethod
     def get_unique_constraints(cls):
         unique_constraints = []
-        for constraint in model_cls._meta.constraints:
+        for constraint in cls._meta.constraints:
             if isinstance(constraint, models.UniqueConstraint):
                 unique_constraints.extend(constraint.fields)
         return unique_constraints

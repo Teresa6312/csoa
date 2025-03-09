@@ -10,15 +10,12 @@ from .models import (
     FormTemplate,
     Workflow,
     Task,
-    TaskInstance,
     DecisionPoint,
-    FormSection,
 )
 from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 from django.db.models import Q
 from base.util_files import handle_uploaded_file
-from django_jsonform.forms.fields import JSONFormField
 from base import constants
 
 import logging
@@ -552,117 +549,3 @@ def create_dynamic_task_instance_form(TaskInstanceClass):
             return super().save(commit=commit)
 
     return TaskInstanceForm
-
-
-# from .models import CaseData
-# class CaseDataForm(forms.ModelForm):
-# 	# Explicitly declare the JSONFormField with the schema
-# 	# section_data = JSONFormField()
-# 	section_data = JSONFormField(schema={
-# 		"type": "object",
-# 		"properties": {
-# 			"attachment": {
-# 			"title": "Attachment",
-# 			"type": "string",
-# 			"format": "binary"
-# 			},
-# 			"country": {
-# 			"title": "国家"
-# 			},
-# 			"country2": {
-# 			"title": "国家2"
-# 			},
-# 			"specialTerms": {
-# 			"title": "Special Terms excludes 中国",
-# 			"type": "string",
-# 			"maxLength": 500
-# 			},
-# 			"specialTerms3": {
-# 			"title": "Special Terms3 Array includes 日本",
-# 			"type": "string",
-# 			"maxLength": 500
-# 			},
-# 			"specialTerms2": {
-# 			"title": "Special Terms2 value all in [中国, 美国]",
-# 			"type": "string",
-# 			"maxLength": 500
-# 			},
-# 			"province": {
-# 			"title": "省份"
-# 			},
-# 			"city": {
-# 			"title": "City"
-# 			},
-# 			"gender": {
-# 			"title": "性别"
-# 			},
-# 			"age": {
-# 			"title": "年龄",
-# 			"type": "number",
-# 			"maximum": 999,
-# 			"minimum": -1000,
-# 			"multipleOf": 1
-# 			},
-# 			"contractAmount": {
-# 			"title": "Contract Amount",
-# 			"type": "number",
-# 			"maximum": 9999999999.99,
-# 			"minimum": -10000000000,
-# 			"multipleOf": 0.01
-# 			},
-# 			"documentName": {
-# 			"title": "Document Name",
-# 			"type": "string",
-# 			"maxLength": 500
-# 			},
-# 			"contractRemark": {
-# 			"title": "Contract Remarks",
-# 			"type": "string",
-# 			"maxLength": 1000
-# 			},
-# 			"attachments": {
-# 			"title": "Attachment(s)",
-# 			"type": "array",
-# 			"items": {
-# 				"type": "object",
-# 				"properties": {
-# 				"attachment": {
-# 					"title": "Attachment",
-# 					"type": "string",
-# 					"format": "binary"
-# 				},
-# 				"remark": {
-# 					"title": "Remark",
-# 					"type": "string",
-# 					"maxLength": 500
-# 				}
-# 				},
-# 				"additionalProperties": False,
-# 				"required": [
-# 				"attachment"
-# 				]
-# 			}
-# 			}
-# 		},
-# 		"additionalProperties": False,
-# 		"required": [
-# 			"attachment",
-# 			"country",
-# 			"country2",
-# 			"province",
-# 			"city",
-# 			"gender",
-# 			"age",
-# 			"contractAmount",
-# 			"documentName",
-# 			"attachments"
-# 		]
-# 		})
-
-# 	class Meta:
-# 		model = CaseData
-# 		fields = '__all__'
-
-# 	def __init__(self, *args, **kwargs):
-# 		super().__init__(*args, **kwargs)
-# 		# self.fields['section_data'].schema =  self.instance.form_section.json_template_schema if self.instance and self.instance.form_section else {}

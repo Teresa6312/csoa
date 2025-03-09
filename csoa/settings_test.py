@@ -18,10 +18,15 @@ ALLOWED_HOSTS = []
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": "D:/OneDrive/Documents/DjangoApps/csoa/db.sqlite3",
+    },
+    "xyz_db": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "D:/OneDrive/Documents/DjangoApps/csoa/db_test.sqlite3",
     }
 }
-
+# Add database router
+DATABASE_ROUTERS = ['csoa.routers.XYZRouter']
 # email
 SENDGRID_API_KEY = ""
 
@@ -32,14 +37,14 @@ EMAIL_HOST_PASSWORD = ""
 EMAIL_USE_TLS = True
 # Email address that error messages come from.
 SERVER_EMAIL = "csoa_test@csoa.com"
-ADMINS = [("Cuishan", "cuishan1122@gmail.com")]
-# Default email address to use for various automated correspondence from
+ADMINS = [("Cuishan", "csoa_test@gmail.com")]
 # the site managers.
 DEFAULT_FROM_EMAIL = "csoa_test@csoa.com"
 
 REDIS_HOST = "127.0.0.1"
 REDIS_PORT = 6379
-REDIS_DB = 1  # 0-15 for default redis server, 0 is used for sessions
+REDIS_DB_SESSIONS = 0 # 0-15 for default redis server, 0 is used for sessions
+REDIS_DB_CACHE = 2
 REDIS_PASSWORD = ""
 
 CACHE_TIMEOUT_DEFAULT = 60 * 5  # 5 minutes
